@@ -1,0 +1,8 @@
+name,comment,data_type,default_val,not_null,is_primary
+id,user id,INTEGER,,1,1
+login_id,login id,TEXT,,1,
+permission,permisseion,INTEGER,1,1,
+passwd,hashed password,TEXT,,1,
+created_at,created date time,DATETIME,'9999-12-31',1,
+updated_at,updated date time,DATETIME,'9999-12-31',1,
+deleted_at,deleted date time,DATETIME,'9999-12-31',1,
