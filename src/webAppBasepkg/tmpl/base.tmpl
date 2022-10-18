@@ -1,0 +1,24 @@
+#? stdtmpl | standard
+#proc basePage(param: BasePageParams): string =
+#  let lnk = param.lnk.join("\n        ")
+#  let script = param.script.join("\n        ")
+#  result = ""
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <title>${param.title}</title>
+        <link type="text/css" rel="stylesheet" href="/body.css"/>
+        ${lnk}
+    </head>
+    <body>
+        <header>
+            ${param.header}
+        </header>
+        ${param.body}
+        <footer>
+            ${param.footer}
+        </footer>
+        ${script}
+    </body>
+</html>
