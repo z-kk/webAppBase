@@ -1,5 +1,5 @@
 import
-  std / os,
+  std / [os, random],
   webAppBasepkg / [webserver, dbtables]
 
 proc createDb() =
@@ -8,5 +8,6 @@ proc createDb() =
     db.createTables
 
 when isMainModule:
+  randomize()
   createDb()
   startWebServer()

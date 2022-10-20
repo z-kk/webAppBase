@@ -14,6 +14,7 @@ binDir        = "bin"
 
 requires "nim >= 1.6.0"
 requires "jester >= 0.5.0"
+requires "libsha >= 1.0"
 requires "htmlgenerator"
 
 
