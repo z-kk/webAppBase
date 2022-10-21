@@ -1,5 +1,5 @@
 import
-  std / [strutils, htmlgen],
+  std / [strutils, json, htmlgen],
   jester, htmlgenerator,
   typedef, auth
 

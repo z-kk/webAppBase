@@ -129,3 +129,19 @@ proc login*(id, pass: string): JsonNode =
     result["result"] = %true
     result.delete("err")
     break
+
+proc getAuthUsers*(pm: Permission): seq[LoginUser] =
+  ## Get auth users info list.
+  let db = openDb()
+  defer: db.close
+
+  var perms: seq[int]
+  for i in Permission.low.ord .. pm.ord:
+    perms.add i
+  let rows = db.selectAuthUserInfoTable("permission in ($1)" % [perms.join(",")])
+  for row in rows:
+    var user: LoginUser
+    user.id = row.login_id
+    user.permission = Permission(row.permission)
+    user.isEnable = row.deleted_at > now()
+    result.add user

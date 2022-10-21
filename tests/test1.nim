@@ -20,24 +20,24 @@ test "build app":
 # start jester server
 let p = startProcess("." / AppName)
 let db = openDb()
-var userid: string
-let testPass = "test_pass"
+let tuser = "test_user"
+let tpass = "test_pass"
 
 test "make test user":
-  let pref = "test_user"
-  var suf = 1
-  while not addNewUser(pref & $suf, testPass)["result"].getBool:
-    suf.inc
-  userid = pref & $suf
+  check addNewUser(tuser, tpass)["result"].getBool
+
+  var user = db.selectAuthUserInfoTable("login_id = '$1'" % [tuser])[0]
+  user.permission = pmOwner.ord
+  db.updateAuthUserInfoTable(user)
 
 test "test login api":
-  let loginRes = login(userid, testPass)
+  let loginRes = login(tuser, tpass)
   check loginRes["result"].getBool
 
 test "http newuser request":
   let c = newHttpClient()
   # post newuser data
-  let data = newMultipartData({"userid": userid, "passwd": ""})
+  let data = newMultipartData({"userid": tuser, "passwd": ""})
   let res = c.request(Host & "newuser", HttpPost, multipart = data)
   check not res.body.parseJson["result"].getBool
   check res.body.parseJson["err"].getStr.contains("already exists")
@@ -45,7 +45,7 @@ test "http newuser request":
 test "http login sessoin":
   let c = newHttpClient()
   # post login data
-  let data = newMultipartData({"userid": userid, "passwd": testPass})
+  let data = newMultipartData({"userid": tuser, "passwd": tpass})
   var res = c.request(Host & "login", HttpPost, multipart = data)
   check res.body.parseJson["result"].getBool
 
@@ -54,6 +54,34 @@ test "http login sessoin":
   res = c.request(Host & "userconf", headers = h)
   check not res.body.contains("login.js")
 
-db.exec("DELETE FROM authUserInfo WHERE login_id = ?".sql, userid)
+test "get auth users":
+  var muser = "master_user"
+  var res = false
+  for user in pmOwner.getAuthUsers:
+    if user.id == tuser:
+      res = user.isEnable
+
+  if not res:
+    echo "test user not exist!"
+    check res
+
+  check addNewUser(muser, tpass)["result"].getBool
+  var u = db.selectAuthUserInfoTable("login_id = '$1'" % [muser])[0]
+  u.permission = pmMaster.ord
+  db.updateAuthUserInfoTable(u)
+
+  res = false
+  for user in pmMaster.getAuthUsers:
+    if user.id == muser:
+      res = user.isEnable
+    check user.id != tuser
+
+  if not res:
+    echo "master user not exist!"
+    check res
+
+  db.exec("DELETE FROM authUserInfo WHERE login_id = ?".sql, muser)
+
+db.exec("DELETE FROM authUserInfo WHERE login_id = ?".sql, tuser)
 db.close
 p.kill
