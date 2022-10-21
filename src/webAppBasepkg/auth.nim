@@ -5,11 +5,11 @@ import
 
 type
   Permission* = enum
-    pmNone,
-    pmGuest,
-    pmMember,
-    pmMaster,
-    pmOwner
+    pmNone = "None"
+    pmGuest = "Guest"
+    pmMember = "Member"
+    pmMaster = "Master"
+    pmOwner = "Owner"
 
   LoginUser* = object
     id*: string
@@ -21,9 +21,12 @@ type
     expiration: DateTime
 
 const
-  expirationDuration = initDuration(days = 7)
+  ExpirationDuration = initDuration(days = 7)
 
 var sessions {.threadvar.}: Table[int, SessionInfo]
+
+proc maxDate(): DateTime =
+  "9999-12-31".parse("yyyy-MM-dd")
 
 proc makeSession(id: int): int =
   ## Make new session with user id.
@@ -31,7 +34,7 @@ proc makeSession(id: int): int =
 
   var s: SessionInfo
   s.userId = id
-  s.expiration = now() + expirationDuration
+  s.expiration = now() + ExpirationDuration
   sessions[result] = s
 
 proc getSessionUser*(id: int): LoginUser =
@@ -57,7 +60,7 @@ proc getSessionUser*(id: int): LoginUser =
     result.id = row.login_id
     result.permission = Permission(row.permission)
     result.isEnable = row.deleted_at > nw
-    sessions[id].expiration = nw + expirationDuration
+    sessions[id].expiration = nw + ExpirationDuration
     break
 
 proc addNewUser*(id, pass: string): JsonNode =
@@ -78,7 +81,7 @@ proc addNewUser*(id, pass: string): JsonNode =
   u.passwd = pass.sha256hexdigest
   u.created_at = nw
   u.updated_at = nw
-  u.deleted_at = "9999-12-31".parse("yyyy-MM-dd")
+  u.deleted_at = maxDate()
 
   try:
     db.insertAuthUserInfoTable(u)
@@ -120,7 +123,7 @@ proc login*(id, pass: string): JsonNode =
     for key in sessions.keys:
       if sessions[key].userId == row.id:
         resid = key
-        sessions[key].expiration = nw + expirationDuration
+        sessions[key].expiration = nw + ExpirationDuration
     # make session
     if resid < 0:
       resid = makeSession(row.id)
@@ -145,3 +148,37 @@ proc getAuthUsers*(pm: Permission): seq[LoginUser] =
     user.permission = Permission(row.permission)
     user.isEnable = row.deleted_at > now()
     result.add user
+
+proc updateAuthUsers*(users: seq[LoginUser]): JsonNode =
+  ## Update auth users info.
+  result = %*{"result": false, "err": "unknown error!"}
+
+  let db = openDb()
+  defer: db.close
+
+  var loginIdList: seq[string]
+  for user in users:
+    loginIdList.add "'$1'" % [user.id]
+
+  let data = db.selectAuthUserInfoTable("login_id in ($1)" % loginIdList.join(","))
+  var dataTable = newTable[string, AuthUserInfoTable]()
+  for user in data:
+    dataTable[user.login_id] = user
+
+  var targets: seq[AuthUserInfoTable]
+  let nw = now()
+  for user in users:
+    var tgt = dataTable[user.id]
+    tgt.permission = user.permission.ord
+    if user.isEnable:
+      tgt.deleted_at = maxDate()
+    elif tgt.deleted_at > nw:
+      tgt.deleted_at = nw
+    targets.add tgt
+
+  try:
+    db.updateAuthUserInfoTable(targets)
+    result["result"] = %true
+    result.delete("err")
+  except:
+    return

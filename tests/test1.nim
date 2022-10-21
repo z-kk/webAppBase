@@ -49,8 +49,13 @@ test "http login sessoin":
   var res = c.request(Host & "login", HttpPost, multipart = data)
   check res.body.parseJson["result"].getBool
 
-  # use login session
   var h = newHttpHeaders(@[("cookie", $res.headers["set-cookie"])])
+
+  # not login session
+  res = c.request(Host & "userconf")
+  check res.body.contains("login.js")
+
+  # use login session
   res = c.request(Host & "userconf", headers = h)
   check not res.body.contains("login.js")
 
@@ -79,6 +84,47 @@ test "get auth users":
   if not res:
     echo "master user not exist!"
     check res
+
+  db.exec("DELETE FROM authUserInfo WHERE login_id = ?".sql, muser)
+
+test "http userconf page":
+  let c = newHttpClient()
+  # post login data
+  var data = newMultipartData({"userid": tuser, "passwd": tpass})
+  var res = c.request(Host & "login", HttpPost, multipart = data)
+  check res.body.parseJson["result"].getBool
+
+  # get userconf page
+  var h = newHttpHeaders(@[("cookie", $res.headers["set-cookie"])])
+  res = c.request(Host & "userconf", headers = h)
+  check res.body.contains("userlistfrm")
+
+  # get userconf page by guest
+  let guser = "guest_user"
+  check addNewUser(guser, tpass)["result"].getBool
+
+  data = newMultipartData({"userid": guser, "passwd": tpass})
+  res = c.request(Host & "login", HttpPost, multipart = data)
+  check res.body.parseJson["result"].getBool
+  h = newHttpHeaders(@[("cookie", $res.headers["set-cookie"])])
+  res = c.request(Host & "userconf", headers = h)
+  check not res.body.contains("userlistfrm")
+
+  db.exec("DELETE FROM authUserInfo WHERE login_id = ?".sql, guser)
+
+test "http userconf api":
+  let c = newHttpClient()
+  # post login data
+  var data = newMultipartData({"userid": tuser, "passwd": tpass})
+  var res = c.request(Host & "login", HttpPost, multipart = data)
+  check res.body.parseJson["result"].getBool
+
+  let muser = "member_user"
+  check addNewUser(muser, tpass)["result"].getBool
+
+  data = newMultipartData({muser & "_prm": $pmMember.ord, muser & "_enb": "false"})
+  res = c.request(Host & "userconf", HttpPost, multipart = data)
+  check res.body.parseJson["result"].getBool
 
   db.exec("DELETE FROM authUserInfo WHERE login_id = ?".sql, muser)
 
