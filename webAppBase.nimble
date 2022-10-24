@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.0"
+version       = "0.1.1"
 author        = "z-kk"
 description   = "A new awesome nimble package"
 license       = "MIT"
@@ -15,7 +15,7 @@ binDir        = "bin"
 requires "nim >= 1.6.0"
 requires "jester >= 0.5.0"
 requires "libsha >= 1.0"
-requires "htmlgenerator"
+requires "htmlgenerator >= 0.1.6"
 
 
 # Tasks

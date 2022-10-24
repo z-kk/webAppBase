@@ -1,0 +1,15 @@
+@charset "utf-8";
+/* CSS Document */
+
+.body {
+    display: flex;
+}
+
+main {
+    flex: 1;
+    min-width: 80%;
+}
+
+aside {
+    max-width: 20%;
+}

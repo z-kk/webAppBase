@@ -47,12 +47,22 @@ proc topPage(req: Request): string =
     body: seq[string]
 
   param.title = "Top page"
+  param.lnk.add newLink("/popup.css").toHtml
   param.header = h1("トップページ")
+  param.script.add newScript("/popup.js").toHtml
+  param.script.add newScript("/top.js").toHtml
 
   if user.id == "":
     body.add ha(href: "/login", content: "ログイン").toHtml
     body.add Br
   body.add ha(href: "/userconf", content: "ユーザー設定").toHtml
+  body.add Br
+  body.add hbutton(type: tpButton, id: "popupbtn", content: "popup sample").toHtml
+
+  # Popup
+  body.add hdiv(id: "lay").toHtml
+  body.add hdiv(id: "pop", content: "Popup sample").toHtml
+
   param.body = body.join("\n" & ' '.repeat(8))
 
   return param.basePage
@@ -118,6 +128,7 @@ proc userConfPage(req: Request): string =
     body: seq[string]
 
   param.title = "user config"
+  param.lnk.add newLink("/table.css").toHtml
   param.header = h1("ユーザー設定")
   param.footer = ha(href: "/", content: "TopPage").toHtml
   param.script.add newScript("/userconf.js").toHtml
@@ -161,8 +172,9 @@ proc userConfPage(req: Request): string =
       tr.add htd(content: chk.toHtml)
       tbl.tbody.add tr
 
-    for line in tbl.toHtml.splitLines:
-      frm.contents.add line
+    d = hdiv(class: @["table"])
+    d.add tbl.toHtml
+    frm.add d.toHtml
     frm.add hbutton(type: tpButton, id: "userconfbtn", content: "OK").toHtml
 
     for line in frm.toHtml.splitLines:

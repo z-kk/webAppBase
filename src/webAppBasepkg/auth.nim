@@ -55,7 +55,7 @@ proc getSessionUser*(id: int): LoginUser =
   let db = openDb()
   defer: db.close
 
-  let rows = db.selectAuthUserInfoTable("id = " & $session.userId)
+  let rows = db.selectAuthUserInfoTable("id = ?", @[], $session.userId)
   for row in rows:
     result.id = row.login_id
     result.permission = Permission(row.permission)
@@ -70,7 +70,7 @@ proc addNewUser*(id, pass: string): JsonNode =
   let db = openDb()
   defer: db.close
 
-  if db.selectAuthUserInfoTable("login_id = '$1'" % [id]).len > 0:
+  if db.selectAuthUserInfoTable("login_id = ?", @[], id).len > 0:
     result["err"] = %("user $1 is already exists!" % [id])
     return
 
@@ -89,7 +89,7 @@ proc addNewUser*(id, pass: string): JsonNode =
     result["err"] = %"insert error"
     return
 
-  u = db.selectAuthUserInfoTable("login_id = '$1'" % [id])[0]
+  u = db.selectAuthUserInfoTable("login_id = ?", @[], id)[0]
 
   result["id"] = %u.id.makeSession
   result["result"] = %true
@@ -103,7 +103,7 @@ proc changeUserPass*(id, old, pass: string): JsonNode =
   defer: db.close
 
   # search user in db table
-  let rows = db.selectAuthUserInfoTable("login_id = '$1'" % [id])
+  let rows = db.selectAuthUserInfoTable("login_id = ?", @[], id)
   if rows.len == 0:
     result["err"] = %"no such user"
     return
@@ -130,7 +130,7 @@ proc login*(id, pass: string): JsonNode =
   defer:db.close
 
   # search user in db table
-  let rows = db.selectAuthUserInfoTable("login_id = '$1'" % [id])
+  let rows = db.selectAuthUserInfoTable("login_id = ?", @[], id)
   if rows.len == 0:
     result["err"] = %"no such user"
     return
@@ -183,11 +183,11 @@ proc updateAuthUsers*(users: seq[LoginUser]): JsonNode =
   let db = openDb()
   defer: db.close
 
-  var loginIdList: seq[string]
+  var loginIdList = @[""]
   for user in users:
-    loginIdList.add "'$1'" % [user.id]
+    loginIdList.add user.id
 
-  let data = db.selectAuthUserInfoTable("login_id in ($1)" % loginIdList.join(","))
+  let data = db.selectAuthUserInfoTable("login_id in ($1)" % ["?,".repeat(loginIdList.len)[0..^2]], @[], loginIdList)
   var dataTable = newTable[string, AuthUserInfoTable]()
   for user in data:
     dataTable[user.login_id] = user
