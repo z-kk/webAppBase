@@ -47,12 +47,22 @@ proc topPage(req: Request): string =
     body: seq[string]
 
   param.title = "Top page"
+  param.lnk.add newLink("/popup.css").toHtml
   param.header = h1("トップページ")
+  param.script.add newScript("/popup.js").toHtml
+  param.script.add newScript("/top.js").toHtml
 
   if user.id == "":
     body.add ha(href: "/login", content: "ログイン").toHtml
     body.add Br
   body.add ha(href: "/userconf", content: "ユーザー設定").toHtml
+  body.add Br
+  body.add hbutton(type: tpButton, id: "popupbtn", content: "popup sample").toHtml
+
+  # Popup
+  body.add hdiv(id: "lay").toHtml
+  body.add hdiv(id: "pop", content: "Popup sample").toHtml
+
   param.body = body.join("\n" & ' '.repeat(8))
 
   return param.basePage
