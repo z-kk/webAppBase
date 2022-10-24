@@ -63,19 +63,19 @@ proc insertAuthUserInfoTable*(db: DbConn, rowData: AuthUserInfoTable) =
     ) values ("""
   if rowData.id > 0:
     sql &= &"{rowData.id},"
-  sql &= &"'{rowData.login_id}',{rowData.permission},'{rowData.passwd}',datetime('" & rowData.created_at.format("yyyy-MM-dd HH:mm:ss") & &"'),datetime('" & rowData.updated_at.format("yyyy-MM-dd HH:mm:ss") & &"'),datetime('" & rowData.deleted_at.format("yyyy-MM-dd HH:mm:ss") & &"')"
+  sql &= &"?,?,?,?,?,?"
   sql &= ")"
-  db.exec(sql.sql)
+  db.exec(sql.sql,rowData.login_id,rowData.permission,rowData.passwd,rowData.created_at.format("yyyy-MM-dd HH:mm:ss"),rowData.updated_at.format("yyyy-MM-dd HH:mm:ss"),rowData.deleted_at.format("yyyy-MM-dd HH:mm:ss"))
 proc insertAuthUserInfoTable*(db: DbConn, rowDataSeq: seq[AuthUserInfoTable]) =
   for rowData in rowDataSeq:
     db.insertAuthUserInfoTable(rowData)
-proc selectAuthUserInfoTable*(db: DbConn, whereStr = "", orderStr = ""): seq[AuthUserInfoTable] =
+proc selectAuthUserInfoTable*(db: DbConn, whereStr = "", orderBy: seq[string] = @[], whereVals: varargs[string, `$`]): seq[AuthUserInfoTable] =
   var sql = "select * from authUserInfo"
   if whereStr != "":
     sql &= " where " & whereStr
-  if orderStr != "":
-    sql &= " order by " & orderStr
-  let rows = db.getAllRows(sql.sql)
+  if orderBy.len > 0:
+    sql &= " order by " & orderBy.join(",")
+  let rows = db.getAllRows(sql.sql, whereVals)
   for row in rows:
     var res: AuthUserInfoTable
     res.primKey = row[AuthUserInfoCol.id.ord].parseInt
@@ -90,18 +90,15 @@ proc selectAuthUserInfoTable*(db: DbConn, whereStr = "", orderStr = ""): seq[Aut
 proc updateAuthUserInfoTable*(db: DbConn, rowData: AuthUserInfoTable) =
   if rowData.primKey < 1: return
   var sql = "update authUserInfo set "
-  sql &= &" login_id = '{rowData.login_id}'"
-  sql &= &",permission = {rowData.permission}"
-  sql &= &",passwd = '{rowData.passwd}'"
-  if rowData.created_at != DateTime():
-    sql &= &",created_at = datetime('" & rowData.created_at.format("yyyy-MM-dd HH:mm:ss") & &"')"
-  if rowData.updated_at != DateTime():
-    sql &= &",updated_at = datetime('" & rowData.updated_at.format("yyyy-MM-dd HH:mm:ss") & &"')"
-  if rowData.deleted_at != DateTime():
-    sql &= &",deleted_at = datetime('" & rowData.deleted_at.format("yyyy-MM-dd HH:mm:ss") & &"')"
+  sql &= &" login_id = ?"
+  sql &= &",permission = ?"
+  sql &= &",passwd = ?"
+  sql &= &",created_at = ?"
+  sql &= &",updated_at = ?"
+  sql &= &",deleted_at = ?"
 
   sql &= &" where id = {rowData.primKey}"
-  db.exec(sql.sql)
+  db.exec(sql.sql,rowData.login_id,rowData.permission,rowData.passwd,rowData.created_at.format("yyyy-MM-dd HH:mm:ss"),rowData.updated_at.format("yyyy-MM-dd HH:mm:ss"),rowData.deleted_at.format("yyyy-MM-dd HH:mm:ss"))
 proc updateAuthUserInfoTable*(db: DbConn, rowDataSeq: seq[AuthUserInfoTable]) =
   for rowData in rowDataSeq:
     db.updateAuthUserInfoTable(rowData)
