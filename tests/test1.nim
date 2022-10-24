@@ -49,7 +49,7 @@ test "http login sessoin":
   var res = c.request(Host & "login", HttpPost, multipart = data)
   check res.body.parseJson["result"].getBool
 
-  var h = newHttpHeaders(@[("cookie", $res.headers["set-cookie"])])
+  let h = newHttpHeaders(@[("cookie", $res.headers["set-cookie"])])
 
   # not login session
   res = c.request(Host & "userconf")
@@ -60,7 +60,7 @@ test "http login sessoin":
   check not res.body.contains("login.js")
 
 test "get auth users":
-  var muser = "master_user"
+  let muser = "master_user"
   var res = false
   for user in pmOwner.getAuthUsers:
     if user.id == tuser:
@@ -127,6 +127,42 @@ test "http userconf api":
   check res.body.parseJson["result"].getBool
 
   db.exec("DELETE FROM authUserInfo WHERE login_id = ?".sql, muser)
+
+test "change password":
+  let puser = "pass_user"
+  check addNewUser(puser, tpass)["result"].getBool
+
+  let newpass = "new_pass"
+  check not changeUserPass(puser, newpass, newpass)["result"].getBool
+  check changeUserPass(puser, tpass, newpass)["result"].getBool
+
+  check login(puser, newpass)["result"].getBool
+
+  db.exec("DELETE FROM authUserInfo WHERE login_id = ?".sql, puser)
+
+test "http changepass api":
+  let c = newHttpClient()
+  let puser = "pass_user"
+  check addNewUser(puser, tpass)["result"].getBool
+
+  # post login data
+  var data = newMultipartData({"userid": puser, "passwd": tpass})
+  var res = c.request(Host & "login", HttpPost, multipart = data)
+  check res.body.parseJson["result"].getBool
+
+  let h = newHttpHeaders(@[("cookie", $res.headers["set-cookie"])])
+
+  let newpass = "new_pass"
+  data = newMultipartData({"userid": puser, "oldpasswd": tpass, "passwd": newpass})
+  res = c.request(Host & "changepw", HttpPost, headers = h, multipart = data)
+  check res.body.parseJson["result"].getBool
+
+  # post login data
+  data = newMultipartData({"userid": puser, "passwd": newpass})
+  res = c.request(Host & "login", HttpPost, multipart = data)
+  check res.body.parseJson["result"].getBool
+
+  db.exec("DELETE FROM authUserInfo WHERE login_id = ?".sql, puser)
 
 db.exec("DELETE FROM authUserInfo WHERE login_id = ?".sql, tuser)
 db.close

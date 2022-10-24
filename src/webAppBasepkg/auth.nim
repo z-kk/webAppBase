@@ -95,6 +95,33 @@ proc addNewUser*(id, pass: string): JsonNode =
   result["result"] = %true
   result.delete("err")
 
+proc changeUserPass*(id, old, pass: string): JsonNode =
+  ## Change users password.
+  result = %*{"result": false, "err": "unknown error!"}
+
+  let db = openDb()
+  defer: db.close
+
+  # search user in db table
+  let rows = db.selectAuthUserInfoTable("login_id = '$1'" % [id])
+  if rows.len == 0:
+    result["err"] = %"no such user"
+    return
+
+  for row in rows:
+    var user = row
+    if old.sha256hexdigest != user.passwd:
+      result["err"] = %"wrong old password"
+      return
+
+    user.passwd = pass.sha256hexdigest
+    user.updated_at = now()
+    db.updateAuthUserInfoTable(user)
+
+    result["result"] = %true
+    result.delete("err")
+    break
+
 proc login*(id, pass: string): JsonNode =
   ## Check login user info.
   result = %*{"result": false, "err": "unknown error!"}
@@ -170,6 +197,7 @@ proc updateAuthUsers*(users: seq[LoginUser]): JsonNode =
   for user in users:
     var tgt = dataTable[user.id]
     tgt.permission = user.permission.ord
+    tgt.updated_at = nw
     if user.isEnable:
       tgt.deleted_at = maxDate()
     elif tgt.deleted_at > nw:

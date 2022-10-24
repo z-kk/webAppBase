@@ -1,12 +1,12 @@
 window.addEventListener('load', function() {
-    select("#newuserbtn").addEventListener('click', function() {
-        let fd = new FormData(select("#newuserfrm"));
+    select("#changepwbtn").addEventListener('click', function() {
+        let fd = new FormData(select("#changepwfrm"));
         if (fd.get("passwd") != fd.get("pcheck")) {
             alert("パスワードが一致しません");
             select("[name='passwd']").focus();
             return;
         }
-        fetch("/newuser", {
+        fetch("/changepw", {
             method: "POST",
             body: fd,
         }).then(response => {
@@ -16,10 +16,10 @@ window.addEventListener('load', function() {
             return response.json();
         }).then(data => {
             if (data.result) {
-                // 登録に成功したら次のページへ
-                location.href = data.href
+                // 更新に成功したら元のページへ
+                location.href = "/userconf"
             } else {
-                // 登録に失敗したら理由を表示
+                // 更新に失敗したら理由を表示
                 alert(data.err);
             }
         });

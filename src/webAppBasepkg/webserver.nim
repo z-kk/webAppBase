@@ -10,6 +10,7 @@ type
   NextPage = enum
     npTop = "/"
     npUserConf = "/userconf"
+    npChangePw = "/changepw"
   NameSuffix = enum
     nsPermission = "_perm"
     nsEnabled = "_enb"
@@ -100,6 +101,8 @@ proc newUserPage(req: Request): string =
   frm.add Br
   frm.add hinput(type: tpPassword, name: "passwd", placeholder: "password").toHtml
   frm.add Br
+  frm.add hinput(type: tpPassword, name: "pcheck", placeholder: "再入力").toHtml
+  frm.add Br
   frm.add hbutton(type: tpButton, id: "newuserbtn", content: "登録").toHtml
   for line in frm.toHtml.splitLines:
     body.add line
@@ -169,9 +172,35 @@ proc userConfPage(req: Request): string =
 
   return param.basePage
 
-proc changepwPage(): string =
-  "change password"
+proc changepwPage(req: Request): string =
+  let
+    user = req.getLoginUser
+  var
+    param: BasePageParams
+    body: seq[string]
+    frm: hform
 
+  param.title = "change pass"
+  param.header = h1("パスワードを変更")
+  param.script.add newScript("/changepw.js").toHtml
+
+  frm.id = "changepwfrm"
+  frm.add hlabel(content: "ユーザーID:").toHtml
+  frm.add hlabel(content: user.id).toHtml
+  frm.add Br
+  frm.add hinput(type: tpPassword, name: "oldpasswd", placeholder: "old password").toHtml
+  frm.add Br
+  frm.add hinput(type: tpPassword, name: "passwd", placeholder: "new password").toHtml
+  frm.add Br
+  frm.add hinput(type: tpPassword, name: "pcheck", placeholder: "再入力").toHtml
+  frm.add Br
+  frm.add hbutton(type: tpButton, id: "changepwbtn", content: "OK").toHtml
+  for line in frm.toHtml.splitLines:
+    body.add line
+  body.add ha(href: "/userconf", content: "戻る").toHtml
+  param.body = body.join("\n" & ' '.repeat(8))
+
+  return param.basePage
 
 router rt:
   get "/":
@@ -187,7 +216,10 @@ router rt:
       redirect ("/login")
     resp request.userConfPage
   get "/changepw":
-    resp changepwPage()
+    if not request.getLoginUser.isEnable:
+      setCookie($ctNext, $npChangePw.ord)
+      redirect ("/login")
+    resp request.changepwPage
   post "/login":
     var res = login(request.formData["userid"].body, request.formData["passwd"].body)
     if res["result"].getBool:
@@ -210,6 +242,9 @@ router rt:
     resp res
   post "/userconf":
     resp request.getParamUsers.updateAuthUsers
+  post "/changepw":
+    let user = request.getLoginUser
+    resp changeUserPass(user.id, request.formData["oldpasswd"].body, request.formData["passwd"].body)
 
 proc startWebServer*(port = 5000) =
   let settings = newSettings(port=Port(port))
