@@ -118,6 +118,7 @@ proc userConfPage(req: Request): string =
     body: seq[string]
 
   param.title = "user config"
+  param.lnk.add newLink("/table.css").toHtml
   param.header = h1("ユーザー設定")
   param.footer = ha(href: "/", content: "TopPage").toHtml
   param.script.add newScript("/userconf.js").toHtml
@@ -161,8 +162,9 @@ proc userConfPage(req: Request): string =
       tr.add htd(content: chk.toHtml)
       tbl.tbody.add tr
 
-    for line in tbl.toHtml.splitLines:
-      frm.contents.add line
+    d = hdiv(class: @["table"])
+    d.add tbl.toHtml
+    frm.add d.toHtml
     frm.add hbutton(type: tpButton, id: "userconfbtn", content: "OK").toHtml
 
     for line in frm.toHtml.splitLines:
