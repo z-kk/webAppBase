@@ -11,12 +11,14 @@ window.addEventListener('load', function() {
             return response.json();
         }).then(data => {
             if (data.result) {
-                // $B%m%0%$%s$K@.8y$7$?$i<!$N%Z!<%8$X(B
+                // ログインに成功したら次のページへ
                 location.href = data.href
             } else {
-                // $B%m%0%$%s$K<:GT$7$?$iM}M3$rI=<((B
-                alert(data.err);
+                // ログインに失敗したら理由を表示
+                throw new Error(data.err);
             }
+        }).catch(err => {
+            alert(err);
         });
     });
 

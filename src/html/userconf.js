@@ -6,6 +6,7 @@ window.addEventListener('load', function() {
             body: fd,
         }).then(response => {
             if (!response.ok) {
+                throw new Error("response error");
             }
             return response.json();
         }).then(data => {
@@ -14,6 +15,8 @@ window.addEventListener('load', function() {
             } else {
                 alert("更新に失敗しました\n[" + data.err + "]");
             }
+        }).catch(err => {
+            alert(err);
         });
     });
 });

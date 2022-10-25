@@ -20,8 +20,10 @@ window.addEventListener('load', function() {
                 location.href = data.href
             } else {
                 // 登録に失敗したら理由を表示
-                alert(data.err);
+                throw new Error(data.err);
             }
+        }).catch(err => {
+            alert(err);
         });
     });
 });
