@@ -19,6 +19,12 @@ test "build app":
 
 # start jester server
 let p = startProcess("." / AppName)
+
+test "make symlink":
+  let targetDbFile = getConfigDir() / AppName / getDbFileName().extractFilename
+  getDbFileName().removeFile
+  targetDbFile.createSymlink(getDbFileName())
+
 let db = openDb()
 let tuser = "test_user"
 let tpass = "test_pass"
