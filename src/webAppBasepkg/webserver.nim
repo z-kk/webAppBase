@@ -1,5 +1,5 @@
 import
-  std / [strutils, json, htmlgen],
+  std / [os, strutils, json, htmlgen],
   jester, htmlgenerator,
   typedef, auth
 
@@ -259,6 +259,6 @@ router rt:
     resp changeUserPass(user.id, request.formData["oldpasswd"].body, request.formData["passwd"].body)
 
 proc startWebServer*(port = 5000) =
-  let settings = newSettings(port=Port(port))
+  let settings = newSettings(Port(port), getConfigDir() / getAppFilename().extractFilename / "public")
   var jest = initJester(rt, settings=settings)
   jest.serve

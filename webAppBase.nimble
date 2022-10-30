@@ -20,13 +20,20 @@ requires "htmlgenerator >= 0.1.6"
 
 # Tasks
 
-task r, "build and run":
-  exec "nimble build"
-  exec "nimble ex"
+import std / [os, strutils]
+task r, "make link and run":
+  let publicFilePath = getConfigDir() / bin[0] / "public"
+  if not publicFilePath.parentDir.dirExists:
+    exec "mkdir $1" % [publicFilePath.parentDir]
+  if not publicFilePath.dirExists:
+    exec "ln -s " & getCurrentDir() / srcDir / "html " & publicFilePath
+  exec "nimble run"
 
-import os
-task ex, "run without build":
+task release, "build release bin":
+  exec "nimble -d:release build"
   withDir binDir:
-    exec "if [ ! -e public ]; then ln -s ../src/html public; fi"
-    for b in bin:
-      exec "." / b
+    let staticDir = "public"
+    if staticDir.dirExists:
+      exec "rm -r $1" % [staticDir]
+    exec "cp -r $1 $2" % [".." / srcDir / "html", staticDir]
+    "README.txt".writeFile("copy public dir to ~/.config/$1/$2\n" % [bin[0], staticDir])
