@@ -1,12 +1,12 @@
-window.addEventListener('load', function() {
+self.window.addEventListener('load', function() {
     select("#newuserbtn").addEventListener('click', function() {
-        let fd = new FormData(select("#newuserfrm"));
+        const fd = new FormData(select("#newuserfrm"));
         if (fd.get("passwd") != fd.get("pcheck")) {
             alert("パスワードが一致しません");
             select("[name='passwd']").focus();
             return;
         }
-        fetch("/newuser", {
+        fetch(appName + "newuser", {
             method: "POST",
             body: fd,
         }).then(response => {

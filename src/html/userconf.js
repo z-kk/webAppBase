@@ -1,7 +1,7 @@
-window.addEventListener('load', function() {
+self.window.addEventListener('load', function() {
     select("#userconfbtn").addEventListener('click', function() {
-        let fd = new FormData(select("#userlistfrm"));
-        fetch("/userconf", {
+        const fd = new FormData(select("#userlistfrm"));
+        fetch(appName + "userconf", {
             method: "POST",
             body: fd,
         }).then(response => {

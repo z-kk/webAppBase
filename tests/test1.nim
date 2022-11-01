@@ -8,7 +8,7 @@ import
 const
   BinDir = "bin"
   AppName = "webAppBase"
-  Host = "http://localhost:5000/"
+  Host = "http://localhost:5000/" & AppName & "/"
 
 test "build app":
   let nimblePath = getHomeDir() / ".nimble/bin/nimble"

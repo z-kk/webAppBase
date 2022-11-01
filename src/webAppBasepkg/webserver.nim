@@ -1,7 +1,7 @@
 import
   std / [os, strutils, json, htmlgen],
   jester, htmlgenerator,
-  typedef, auth
+  auth, utils
 
 type
   CookieTitle = enum
@@ -43,19 +43,19 @@ proc topPage(req: Request): string =
   let
     user = req.getLoginUser
   var
-    param: BasePageParams
+    param = req.newParams
     body: seq[string]
 
   param.title = "Top page"
-  param.lnk.add newLink("/popup.css").toHtml
+  param.lnk.add req.newLink("/popup.css").toHtml
   param.header = h1("トップページ")
-  param.script.add newScript("/popup.js").toHtml
-  param.script.add newScript("/top.js").toHtml
+  param.script.add req.newScript("/popup.js").toHtml
+  param.script.add req.newScript("/top.js").toHtml
 
   if user.id == "":
-    body.add ha(href: "/login", content: "ログイン").toHtml
+    body.add ha(href: req.uri("/login"), content: "ログイン").toHtml
     body.add Br
-  body.add ha(href: "/userconf", content: "ユーザー設定").toHtml
+  body.add ha(href: req.uri("/userconf"), content: "ユーザー設定").toHtml
   body.add Br
   body.add hbutton(type: tpButton, id: "popupbtn", content: "popup sample").toHtml
 
@@ -71,13 +71,13 @@ proc loginPage(req: Request): string =
   let
     user = req.getLoginUser
   var
-    param: BasePageParams
+    param = req.newParams
     body: seq[string]
     frm: hform
 
   param.title = "login"
   param.header = h1("ログイン")
-  param.script.add newScript("/login.js").toHtml
+  param.script.add req.newScript("/login.js").toHtml
 
   frm.id = "loginfrm"
   if req.cookies.hasKey($ctNext):
@@ -96,13 +96,13 @@ proc loginPage(req: Request): string =
 
 proc newUserPage(req: Request): string =
   var
-    param: BasePageParams
+    param = req.newParams
     body: seq[string]
     frm: hform
 
   param.title = "new user"
   param.header = h1("新規登録")
-  param.script.add newScript("/newuser.js").toHtml
+  param.script.add req.newScript("/newuser.js").toHtml
 
   frm.id = "newuserfrm"
   if req.cookies.hasKey($ctNext):
@@ -124,20 +124,20 @@ proc userConfPage(req: Request): string =
   let
     user = req.getLoginUser
   var
-    param: BasePageParams
+    param = req.newParams
     body: seq[string]
 
   param.title = "user config"
-  param.lnk.add newLink("/table.css").toHtml
+  param.lnk.add req.newLink("/table.css").toHtml
   param.header = h1("ユーザー設定")
-  param.footer = ha(href: "/", content: "TopPage").toHtml
-  param.script.add newScript("/userconf.js").toHtml
+  param.footer = ha(href: req.uri("/"), content: "TopPage").toHtml
+  param.script.add req.newScript("/userconf.js").toHtml
 
   var d: hdiv
   d.add hlabel(content: "ユーザーID:").toHtml
   d.add hlabel(content: user.id).toHtml
   d.add Br
-  d.add ha(content: "パスワードを変更", href: "/changepw").toHtml
+  d.add ha(content: "パスワードを変更", href: req.uri("/changepw")).toHtml
   for line in d.toHtml.splitLines:
     body.add line
 
@@ -188,13 +188,13 @@ proc changepwPage(req: Request): string =
   let
     user = req.getLoginUser
   var
-    param: BasePageParams
+    param = req.newParams
     body: seq[string]
     frm: hform
 
   param.title = "change pass"
   param.header = h1("パスワードを変更")
-  param.script.add newScript("/changepw.js").toHtml
+  param.script.add req.newScript("/changepw.js").toHtml
 
   frm.id = "changepwfrm"
   frm.add hlabel(content: "ユーザーID:").toHtml
@@ -209,7 +209,7 @@ proc changepwPage(req: Request): string =
   frm.add hbutton(type: tpButton, id: "changepwbtn", content: "OK").toHtml
   for line in frm.toHtml.splitLines:
     body.add line
-  body.add ha(href: "/userconf", content: "戻る").toHtml
+  body.add ha(href: req.uri("/userconf"), content: "戻る").toHtml
   param.body = body.join("\n" & ' '.repeat(8))
 
   return param.basePage
@@ -225,20 +225,20 @@ router rt:
   get "/userconf":
     if not request.getLoginUser.isEnable:
       setCookie($ctNext, $npUserConf.ord)
-      redirect ("/login")
+      redirect uri("/login", false)
     resp request.userConfPage
   get "/changepw":
     if not request.getLoginUser.isEnable:
       setCookie($ctNext, $npChangePw.ord)
-      redirect ("/login")
+      redirect uri("/login", false)
     resp request.changepwPage
   post "/login":
     var res = login(request.formData["userid"].body, request.formData["passwd"].body)
     if res["result"].getBool:
       try:
-        res["href"] = %($NextPage(request.formData["next"].body.parseInt))
+        res["href"] = %uri($NextPage(request.formData["next"].body.parseInt), false)
       except:
-        res["href"] = %($npTop)
+        res["href"] = %uri($npTop, false)
       setCookie($ctSession, $res["id"].getInt, httpOnly = true)
       res.delete("id")
     resp res
@@ -246,9 +246,9 @@ router rt:
     var res = addNewUser(request.formData["userid"].body, request.formData["passwd"].body)
     if res["result"].getBool:
       try:
-        res["href"] = %($NextPage(request.formData["next"].body.parseInt))
+        res["href"] = %uri($NextPage(request.formData["next"].body.parseInt), false)
       except:
-        res["href"] = %($npTop)
+        res["href"] = %uri($npTop, false)
       setCookie($ctSession, $res["id"].getInt, httpOnly = true)
       res.delete("id")
     resp res
@@ -258,7 +258,7 @@ router rt:
     let user = request.getLoginUser
     resp changeUserPass(user.id, request.formData["oldpasswd"].body, request.formData["passwd"].body)
 
-proc startWebServer*(port = 5000) =
-  let settings = newSettings(Port(port), getConfigDir() / getAppFilename().extractFilename / "public")
+proc startWebServer*(port = 5000, appName = "") =
+  let settings = newSettings(Port(port), getConfigDir() / getAppFilename().extractFilename / "public", appName)
   var jest = initJester(rt, settings=settings)
   jest.serve

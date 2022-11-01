@@ -1,7 +1,7 @@
-window.addEventListener('load', function() {
+self.window.addEventListener('load', function() {
     select("#loginbtn").addEventListener('click', function() {
-        let fd = new FormData(select("#loginfrm"));
-        fetch("/login", {
+        const fd = new FormData(select("#loginfrm"));
+        fetch(appName + "login", {
             method: "POST",
             body: fd,
         }).then(response => {
@@ -23,6 +23,6 @@ window.addEventListener('load', function() {
     });
 
     select("#newuserbtn").addEventListener('click', function() {
-        location.href = "/newuser";
+        location.href = appName + "newuser";
     });
 });

@@ -5,8 +5,11 @@ import
 const
   DefaultPort = 5000
 
+let
+  appName = getAppFilename().extractFilename
+
 proc createConfDir() =
-  let dir = getConfigDir() / getAppFilename().extractFilename
+  let dir = getConfigDir() / appName
   dir.createDir
 
 proc createDb() =
@@ -28,4 +31,4 @@ proc getPort(): int =
 when isMainModule:
   randomize()
   createDb()
-  startWebServer(getPort())
+  startWebServer(getPort(), "/" & appName)
