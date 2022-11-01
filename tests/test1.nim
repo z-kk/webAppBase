@@ -23,6 +23,8 @@ let p = startProcess("." / AppName)
 test "make symlink":
   let targetDbFile = getConfigDir() / AppName / getDbFileName().extractFilename
   getDbFileName().removeFile
+  if not getDbFileName().parentDir.dirExists:
+    getDbFileName().parentDir.createDir
   targetDbFile.createSymlink(getDbFileName())
 
 let db = openDb()
