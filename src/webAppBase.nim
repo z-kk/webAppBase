@@ -22,8 +22,7 @@ proc getPort(): int =
     try:
       commandLineParams()[0].parseInt
     except:
-      echo "usage: $1 [Port]" % [getAppFilename().extractFilename]
-      quit()
+      quit("usage: $1 [Port]" % [appName])
 
 when isMainModule:
   randomize()
