@@ -13,6 +13,7 @@ proc createDb() =
   if not getDbFileName().fileExists:
     createConfDir()
     let db = openDb()
+    defer: db.close
     db.createTables
 
 proc getPort(): int =
