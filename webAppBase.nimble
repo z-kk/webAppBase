@@ -16,6 +16,7 @@ requires "nim >= 1.6.0"
 requires "jester >= 0.5.0"
 requires "libsha >= 1.0"
 requires "htmlgenerator >= 0.1.6"
+requires "docopt >= 0.7.0"
 
 
 # Tasks
@@ -27,10 +28,10 @@ task r, "make link and run":
     exec "mkdir $1" % [publicFilePath.parentDir]
   if not publicFilePath.dirExists:
     exec "ln -s " & getCurrentDir() / srcDir / "html " & publicFilePath
-  exec "nimble run"
+  exec "nimble -d:Version=v$1 run" % [version]
 
 task release, "build release bin":
-  exec "nimble -d:release build"
+  exec "nimble -d:release -d:Version=v$1 build" % [version]
   withDir binDir:
     let staticDir = "public"
     if staticDir.dirExists:

@@ -1,16 +1,44 @@
 import
-  std / [os, strutils, parseopt, random],
+  std / [os, strutils, random],
+  docopt,
   webAppBasepkg / [webserver, dbtables]
 
 type
   CmdOpt = object
     port: int
+    appName: string
 
 const
+  Version {.strdefine.} = ""
   DefaultPort = 5000
 
 let
   appName = getAppFilename().extractFilename
+
+proc readCmdOpt(): CmdOpt =
+  ## Read command line options.
+  let doc = """
+    $1
+
+    Usage:
+      $1 [-p <port>] [(-n [<appName>])]
+
+    Options:
+      -h --help         Show this screen.
+      --version         Show version.
+      -p --port <port>  Http server port [default: $2]
+      -n --name         Use appName
+      <appName>         Set appName
+  """ % [appName, $DefaultPort]
+  let args = doc.dedent.docopt(version = Version)
+
+  result.port = try: parseInt($args["--port"]) except: DefaultPort
+  if args["--name"]:
+    result.appName = "/"
+    if args["<appName>"].kind == vkNone:
+      result.appName.add appName
+    else:
+      result.appName.add $args["<appName>"]
 
 proc createConfDir() =
   let dir = getConfigDir() / appName
@@ -23,53 +51,8 @@ proc createDb() =
     defer: db.close
     db.createTables
 
-proc readCmdOpt(): CmdOpt =
-  ## Read command line options.
-  var
-    p = initOptParser()
-    fail = false
-  while true:
-    p.next
-    case p.kind
-    of cmdArgument:
-      if result.port == 0:
-        try:
-          result.port = p.key.parseInt
-        except:
-          fail = true
-          break
-      else:
-        fail = true
-        break
-    of cmdLongOption, cmdShortOption:
-      case p.key
-      of "p", "port":
-        var val = p.val
-        if val == "":
-          p.next
-          if p.kind != cmdArgument:
-            fail = true
-            break
-          val = p.key
-        try:
-          result.port = val.parseInt
-        except:
-          fail = true
-          break
-      else:
-        fail = true
-        break
-    of cmdEnd:
-      break
-
-  if fail:
-    quit("usage: $1 [[-p|--port] Port]" % [appName])
-
-  if result.port == 0:
-    result.port = DefaultPort
-
 when isMainModule:
   randomize()
   createDb()
   let cmdOpt = readCmdOpt()
-  startWebServer(cmdOpt.port, "/" & appName)
+  startWebServer(cmdOpt.port, cmdOpt.appName)
