@@ -23,18 +23,26 @@ requires "docopt >= 0.7.0"
 
 import std / [os, strutils]
 task r, "make link and run":
-  let publicFilePath = getConfigDir() / bin[0] / "public"
-  if not publicFilePath.parentDir.dirExists:
-    exec "mkdir $1" % [publicFilePath.parentDir]
-  if not publicFilePath.dirExists:
-    exec "ln -s " & getCurrentDir() / srcDir / "html " & publicFilePath
+  let staticDir = getConfigDir() / bin[0] / "public"
+  staticDir.parentDir.mkDir
+  if not staticDir.dirExists:
+    exec "ln -s " & getCurrentDir() / srcDir / "html " & staticDir
   exec "nimble -d:Version=v$1 run" % [version]
+
+task inst, "install":
+  let staticDir = getConfigDir() / bin[0] / "public"
+  staticDir.parentDir.mkDir
+  staticDir.rmDir
+  cpDir(srcDir / "html", staticDir)
+  let confFile = srcDir / "$1.nim.cfg" % [bin[0]]
+  writeFile(confFile, "-d:Version=\"v$1\"\n" % [version])
+  exec "nimble install"
+  confFile.rmFile
 
 task release, "build release bin":
   exec "nimble -d:release -d:Version=v$1 build" % [version]
   withDir binDir:
     let staticDir = "public"
-    if staticDir.dirExists:
-      exec "rm -r $1" % [staticDir]
-    exec "cp -r $1 $2" % [".." / srcDir / "html", staticDir]
+    staticDir.rmDir
+    cpDir(".." / srcDir / "html", staticDir)
     "README.txt".writeFile("copy public dir to ~/.config/$1/$2\n" % [bin[0], staticDir])
