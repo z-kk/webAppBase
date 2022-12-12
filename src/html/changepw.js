@@ -1,12 +1,12 @@
-window.addEventListener('load', function() {
+self.window.addEventListener('load', function() {
     select("#changepwbtn").addEventListener('click', function() {
-        let fd = new FormData(select("#changepwfrm"));
+        const fd = new FormData(select("#changepwfrm"));
         if (fd.get("passwd") != fd.get("pcheck")) {
             alert("パスワードが一致しません");
             select("[name='passwd']").focus();
             return;
         }
-        fetch("/changepw", {
+        fetch(appName + "changepw", {
             method: "POST",
             body: fd,
         }).then(response => {
@@ -17,7 +17,7 @@ window.addEventListener('load', function() {
         }).then(data => {
             if (data.result) {
                 // 更新に成功したら元のページへ
-                location.href = "/userconf"
+                location.href = appName + "userconf"
             } else {
                 // 更新に失敗したら理由を表示
                 throw new Error(data.err);

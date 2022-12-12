@@ -12,7 +12,7 @@ select("#lay").addEventListener('click', function() {
     hidePopup();
 });
 
-window.addEventListener('scroll', function() {
+self.window.addEventListener('scroll', function() {
     select("#lay").style.top = this.scrollY + "px";
     select("#lay").style.left = this.scrollX + "px";
 

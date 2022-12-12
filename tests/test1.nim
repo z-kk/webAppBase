@@ -8,7 +8,7 @@ import
 const
   BinDir = "bin"
   AppName = "webAppBase"
-  Host = "http://localhost:5000/"
+  Host = "http://localhost:5000/" & AppName & "/"
 
 test "build app":
   let nimblePath = getHomeDir() / ".nimble/bin/nimble"
@@ -23,6 +23,8 @@ let p = startProcess("." / AppName)
 test "make symlink":
   let targetDbFile = getConfigDir() / AppName / getDbFileName().extractFilename
   getDbFileName().removeFile
+  if not getDbFileName().parentDir.dirExists:
+    getDbFileName().parentDir.createDir
   targetDbFile.createSymlink(getDbFileName())
 
 let db = openDb()
