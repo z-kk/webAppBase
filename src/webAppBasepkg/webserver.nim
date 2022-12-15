@@ -10,6 +10,7 @@ type
     pgNewUser = "/newuser"
     pgUserConf = "/userconf"
     pgChangePw = "/changepw"
+    pgSample = "/sample"
   CookieTitle = enum
     ctSession = "session"
     ctNext = "next"
@@ -25,6 +26,7 @@ const
     pgNewUser: ("New user", false),
     pgUserConf: ("User config", false),
     pgChangePw: ("Change password", false),
+    pgSample: ("Sample", true),
   }.toOrderedTable
 
 include "tmpl/base.tmpl"
@@ -80,6 +82,8 @@ proc topPage(req: Request): string =
   param.script.add req.newScript("/popup.js").toHtml
   param.script.add req.newScript("/top.js").toHtml
 
+  body.add ha(href: req.uri($pgSample), content: "サンプルページ").toHtml
+  body.add Br
   if user.id == "":
     body.add ha(href: req.uri($pgLogin), content: "ログイン").toHtml
     body.add Br
@@ -240,6 +244,41 @@ proc changepwPage(req: Request): string =
 
   return param.basePage
 
+proc samplePage(req: Request): string =
+  let
+    user = req.getLoginUser
+  var
+    param = req.newParams
+    body: seq[string]
+    frm: hform
+
+  param.title = AppTitle
+  param.lnk.add req.newLink("/sample.css").toHtml
+  param.header = h1("サンプルページ")
+  param.sidemenu = getMenuStr(pgSample)
+
+  if user.id == "":
+    var d: hdiv
+    d.add hlabel(content: "ユーザー情報なし").toHtml
+    for line in d.toHtml.splitLines:
+      body.add line
+  else:
+    body.add hlabel(class: @["label-inline", "title"], content: "ID: ").toHtml
+    body.add hlabel(class: @["label-inline"], content: user.id).toHtml
+    body.add Br
+    body.add hlabel(class: @["label-inline", "title"], content: "Enable: ").toHtml
+    body.add hlabel(class: @["label-inline"], content: $user.isEnable).toHtml
+    body.add Br
+
+  frm.id = "samplefrm"
+  frm.add hinput(name: "input1", title: "input-title").toHtml
+  frm.add hbutton(content: "OK").toHtml
+  for line in frm.toHtml.splitLines:
+    body.add line
+  param.body = body.join("\n" & ' '.repeat(16))
+
+  return param.basePage
+
 router rt:
   get "/":
     setCookie($ctNext, $pgTop.ord)
@@ -258,6 +297,8 @@ router rt:
       setCookie($ctNext, $pgChangePw.ord)
       redirect uri($pgLogin, false)
     resp request.changepwPage
+  get "/sample":
+      resp request.samplePage
   post "/login":
     var res = login(request.formData["userid"].body, request.formData["passwd"].body)
     if res["result"].getBool:
