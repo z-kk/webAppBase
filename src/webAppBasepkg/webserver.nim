@@ -111,10 +111,8 @@ proc loginPage(req: Request): string =
   frm.id = "loginfrm"
   if req.cookies.hasKey($ctNext):
     frm.add hinput(type: tpHidden, name: "next", value: req.cookies[$ctNext]).toHtml
-  frm.add hinput(name: "userid", value: user.id, placeholder: "ユーザー名").toHtml
-  frm.add Br
-  frm.add hinput(type: tpPassword, name: "passwd", placeholder: "password").toHtml
-  frm.add Br
+  frm.add hinput(name: "userid", title: "ユーザー名", value: user.id, placeholder: "ユーザー名").toHtml
+  frm.add hinput(type: tpPassword, name: "passwd", title: "パスワード", placeholder: "password").toHtml
   frm.add hbutton(type: tpButton, id: "loginbtn", content: "ログイン").toHtml
   frm.add hbutton(type: tpButton, id: "newuserbtn", content: "新規登録").toHtml
   for line in frm.toHtml.splitLines:
@@ -164,8 +162,8 @@ proc userConfPage(req: Request): string =
   param.script.add req.newScript("/userconf.js").toHtml
 
   var d: hdiv
-  d.add hlabel(content: "ユーザーID:").toHtml
-  d.add hlabel(content: user.id).toHtml
+  d.add hlabel(class: @["label-inline"], content: "ユーザーID:").toHtml
+  d.add hlabel(class: @["label-inline"], content: user.id).toHtml
   d.add Br
   d.add ha(content: "パスワードを変更", href: req.uri($pgChangePw)).toHtml
   for line in d.toHtml.splitLines:
@@ -228,15 +226,12 @@ proc changepwPage(req: Request): string =
   param.script.add req.newScript("/changepw.js").toHtml
 
   frm.id = "changepwfrm"
-  frm.add hlabel(content: "ユーザーID:").toHtml
-  frm.add hlabel(content: user.id).toHtml
+  frm.add hlabel(class: @["label-inline"], content: "ユーザーID:").toHtml
+  frm.add hlabel(class: @["label-inline"], content: user.id).toHtml
   frm.add Br
-  frm.add hinput(type: tpPassword, name: "oldpasswd", placeholder: "old password").toHtml
-  frm.add Br
-  frm.add hinput(type: tpPassword, name: "passwd", placeholder: "new password").toHtml
-  frm.add Br
-  frm.add hinput(type: tpPassword, name: "pcheck", placeholder: "再入力").toHtml
-  frm.add Br
+  frm.add hinput(type: tpPassword, name: "oldpasswd", title: "旧パスワード", placeholder: "old password").toHtml
+  frm.add hinput(type: tpPassword, name: "passwd", title: "新パスワード", placeholder: "new password").toHtml
+  frm.add hinput(type: tpPassword, name: "pcheck", title: "再入力", placeholder: "再入力").toHtml
   frm.add hbutton(type: tpButton, id: "changepwbtn", content: "OK").toHtml
   for line in frm.toHtml.splitLines:
     body.add line
