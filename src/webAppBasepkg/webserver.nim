@@ -1,19 +1,31 @@
 import
-  std / [os, strutils, json, htmlgen],
+  std / [os, strutils, tables, json, htmlgen],
   jester, htmlgenerator,
   auth, utils
 
 type
+  Page = enum
+    pgTop = "/"
+    pgLogin = "/login"
+    pgNewUser = "/newuser"
+    pgUserConf = "/userconf"
+    pgChangePw = "/changepw"
   CookieTitle = enum
     ctSession = "session"
     ctNext = "next"
-  NextPage = enum
-    npTop = "/"
-    npUserConf = "/userconf"
-    npChangePw = "/changepw"
   NameSuffix = enum
     nsPermission = "_perm"
     nsEnabled = "_enb"
+
+const
+  AppTitle = "webApp"
+  Pages: OrderedTable[Page, tuple[title: string, isMenuItem: bool]] = {
+    pgTop: ("Top Page", true),
+    pgLogin: ("Login", false),
+    pgNewUser: ("New user", false),
+    pgUserConf: ("User config", false),
+    pgChangePw: ("Change password", false),
+  }.toOrderedTable
 
 include "tmpl/base.tmpl"
 
@@ -39,6 +51,21 @@ proc getParamUsers(req: Request): seq[LoginUser] =
     if u.permission != res.permission or u.isEnable != res.isEnable:
       result.add res
 
+proc getMenuStr(activePage: Page): string =
+  ## Get side menu string.
+  var
+    menu: seq[string]
+    item: ha
+  for page, info in Pages:
+    if not info.isMenuItem:
+      continue
+    item = ha(href: $page, content: info.title)
+    if page == activePage:
+      item.class.add "is-active"
+    menu.add item.toHtml
+
+  return menu.join(" $1\n$2" % [Br, ' '.repeat(16)])
+
 proc topPage(req: Request): string =
   let
     user = req.getLoginUser
@@ -46,16 +73,17 @@ proc topPage(req: Request): string =
     param = req.newParams
     body: seq[string]
 
-  param.title = "Top page"
+  param.title = AppTitle
   param.lnk.add req.newLink("/popup.css").toHtml
   param.header = h1("トップページ")
+  param.sidemenu = getMenuStr(pgTop)
   param.script.add req.newScript("/popup.js").toHtml
   param.script.add req.newScript("/top.js").toHtml
 
   if user.id == "":
-    body.add ha(href: req.uri("/login"), content: "ログイン").toHtml
+    body.add ha(href: req.uri($pgLogin), content: "ログイン").toHtml
     body.add Br
-  body.add ha(href: req.uri("/userconf"), content: "ユーザー設定").toHtml
+  body.add ha(href: req.uri($pgUserConf), content: "ユーザー設定").toHtml
   body.add Br
   body.add hbutton(type: tpButton, id: "popupbtn", content: "popup sample").toHtml
 
@@ -63,7 +91,7 @@ proc topPage(req: Request): string =
   body.add hdiv(id: "lay").toHtml
   body.add hdiv(id: "pop", content: "Popup sample").toHtml
 
-  param.body = body.join("\n" & ' '.repeat(8))
+  param.body = body.join("\n" & ' '.repeat(16))
 
   return param.basePage
 
@@ -75,8 +103,9 @@ proc loginPage(req: Request): string =
     body: seq[string]
     frm: hform
 
-  param.title = "login"
+  param.title = AppTitle & " - login"
   param.header = h1("ログイン")
+  param.sidemenu = getMenuStr(pgLogin)
   param.script.add req.newScript("/login.js").toHtml
 
   frm.id = "loginfrm"
@@ -90,7 +119,7 @@ proc loginPage(req: Request): string =
   frm.add hbutton(type: tpButton, id: "newuserbtn", content: "新規登録").toHtml
   for line in frm.toHtml.splitLines:
     body.add line
-  param.body = body.join("\n" & ' '.repeat(8))
+  param.body = body.join("\n" & ' '.repeat(16))
 
   return param.basePage
 
@@ -100,8 +129,9 @@ proc newUserPage(req: Request): string =
     body: seq[string]
     frm: hform
 
-  param.title = "new user"
+  param.title = AppTitle
   param.header = h1("新規登録")
+  param.sidemenu = getMenuStr(pgNewUser)
   param.script.add req.newScript("/newuser.js").toHtml
 
   frm.id = "newuserfrm"
@@ -116,7 +146,7 @@ proc newUserPage(req: Request): string =
   frm.add hbutton(type: tpButton, id: "newuserbtn", content: "登録").toHtml
   for line in frm.toHtml.splitLines:
     body.add line
-  param.body = body.join("\n" & ' '.repeat(8))
+  param.body = body.join("\n" & ' '.repeat(16))
 
   return param.basePage
 
@@ -127,17 +157,17 @@ proc userConfPage(req: Request): string =
     param = req.newParams
     body: seq[string]
 
-  param.title = "user config"
+  param.title = AppTitle
   param.lnk.add req.newLink("/table.css").toHtml
   param.header = h1("ユーザー設定")
-  param.footer = ha(href: req.uri("/"), content: "TopPage").toHtml
+  param.sidemenu = getMenuStr(pgUserConf)
   param.script.add req.newScript("/userconf.js").toHtml
 
   var d: hdiv
   d.add hlabel(content: "ユーザーID:").toHtml
   d.add hlabel(content: user.id).toHtml
   d.add Br
-  d.add ha(content: "パスワードを変更", href: req.uri("/changepw")).toHtml
+  d.add ha(content: "パスワードを変更", href: req.uri($pgChangePw)).toHtml
   for line in d.toHtml.splitLines:
     body.add line
 
@@ -180,7 +210,7 @@ proc userConfPage(req: Request): string =
     for line in frm.toHtml.splitLines:
       body.add line
 
-  param.body = body.join("\n" & ' '.repeat(8))
+  param.body = body.join("\n" & ' '.repeat(16))
 
   return param.basePage
 
@@ -192,8 +222,9 @@ proc changepwPage(req: Request): string =
     body: seq[string]
     frm: hform
 
-  param.title = "change pass"
+  param.title = AppTitle
   param.header = h1("パスワードを変更")
+  param.sidemenu = getMenuStr(pgChangePw)
   param.script.add req.newScript("/changepw.js").toHtml
 
   frm.id = "changepwfrm"
@@ -209,14 +240,14 @@ proc changepwPage(req: Request): string =
   frm.add hbutton(type: tpButton, id: "changepwbtn", content: "OK").toHtml
   for line in frm.toHtml.splitLines:
     body.add line
-  body.add ha(href: req.uri("/userconf"), content: "戻る").toHtml
-  param.body = body.join("\n" & ' '.repeat(8))
+  body.add ha(href: req.uri($pgUserConf), content: "戻る").toHtml
+  param.body = body.join("\n" & ' '.repeat(16))
 
   return param.basePage
 
 router rt:
   get "/":
-    setCookie($ctNext, $npTop.ord)
+    setCookie($ctNext, $pgTop.ord)
     resp request.topPage
   get "/login":
     resp request.loginPage
@@ -224,21 +255,21 @@ router rt:
     resp request.newUserPage
   get "/userconf":
     if not request.getLoginUser.isEnable:
-      setCookie($ctNext, $npUserConf.ord)
-      redirect uri("/login", false)
+      setCookie($ctNext, $pgUserConf.ord)
+      redirect uri($pgLogin, false)
     resp request.userConfPage
   get "/changepw":
     if not request.getLoginUser.isEnable:
-      setCookie($ctNext, $npChangePw.ord)
-      redirect uri("/login", false)
+      setCookie($ctNext, $pgChangePw.ord)
+      redirect uri($pgLogin, false)
     resp request.changepwPage
   post "/login":
     var res = login(request.formData["userid"].body, request.formData["passwd"].body)
     if res["result"].getBool:
       try:
-        res["href"] = %uri($NextPage(request.formData["next"].body.parseInt), false)
+        res["href"] = %uri($Page(request.formData["next"].body.parseInt), false)
       except:
-        res["href"] = %uri($npTop, false)
+        res["href"] = %uri($pgTop, false)
       setCookie($ctSession, $res["id"].getInt, httpOnly = true)
       res.delete("id")
     resp res
@@ -246,9 +277,9 @@ router rt:
     var res = addNewUser(request.formData["userid"].body, request.formData["passwd"].body)
     if res["result"].getBool:
       try:
-        res["href"] = %uri($NextPage(request.formData["next"].body.parseInt), false)
+        res["href"] = %uri($Page(request.formData["next"].body.parseInt), false)
       except:
-        res["href"] = %uri($npTop, false)
+        res["href"] = %uri($pgTop, false)
       setCookie($ctSession, $res["id"].getInt, httpOnly = true)
       res.delete("id")
     resp res

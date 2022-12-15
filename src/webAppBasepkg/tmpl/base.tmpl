@@ -9,14 +9,21 @@
     <head>
         <meta charset="utf-8">
         <title>${param.title}</title>
-        <link type="text/css" rel="stylesheet" href="${appName}body.css"/>
+        <link type="text/css" rel="stylesheet" href="${appName}menu.css"/>
         ${lnk}
     </head>
     <body>
         <header>
             ${param.header}
         </header>
-        ${param.body}
+        <div class="body">
+            <main>
+                ${param.body}
+            </main>
+            <aside class="menu">
+                ${param.sidemenu}
+            </aside>
+        </div>
         <footer>
             ${param.footer}
         </footer>
