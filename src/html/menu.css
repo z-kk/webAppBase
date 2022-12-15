@@ -1,0 +1,37 @@
+@charset "utf-8";
+/* CSS Document */
+
+.body {
+    display: flex;
+}
+
+main {
+    flex: auto;
+    min-width: 80%;
+    padding: 8px;
+}
+
+aside.menu {
+    max-width: 20%;
+    padding: 8px;
+}
+
+.menu a {
+    display: inline-block;
+    height: 2em;
+    width: 100%;
+    line-height: 2em;
+    padding: 0 10px;
+    border: 0.1rem solid transparent;
+}
+
+.menu a.is-active {
+    background-color: #9b4dca;
+    color: white;
+}
+
+.menu a:hover,
+.menu a:focus {
+    border-color: #9b4dca;
+    color: #606c76;
+}

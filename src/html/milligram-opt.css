@@ -1,0 +1,18 @@
+@charset "utf-8";
+/* CSS Document */
+
+select:focus {
+    background-color: #fff;
+}
+
+table .button,
+table button,
+table dd,
+table dt,
+table li,
+table fieldset,
+table input,
+table select,
+table textarea {
+  margin: 0;
+}

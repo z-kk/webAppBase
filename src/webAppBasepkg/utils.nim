@@ -6,6 +6,7 @@ type
     title*: string
     lnk*: seq[string]
     header*: string
+    sidemenu*: string
     body*: string
     footer*: string
     script*: seq[string]
