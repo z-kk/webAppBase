@@ -30,7 +30,8 @@ proc maxDate(): DateTime =
 
 proc makeSession(id: int): int =
   ## Make new session with user id.
-  result = rand(0xffff)
+  while result == 0 or result in sessions:
+    result = rand(0xffff)
 
   var s: SessionInfo
   s.userId = id
@@ -55,7 +56,7 @@ proc getSessionUser*(id: int): LoginUser =
   let db = openDb()
   defer: db.close
 
-  let rows = db.selectAuthUserInfoTable("id = ?", @[], $session.userId)
+  let rows = db.selectAuthUserInfoTable("id = ?", @[], session.userId)
   for row in rows:
     result.id = row.login_id
     result.permission = Permission(row.permission)
