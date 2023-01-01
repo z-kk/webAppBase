@@ -325,7 +325,11 @@ router rt:
     let user = request.getLoginUser
     resp changeUserPass(user.id, request.formData["oldpasswd"].body, request.formData["passwd"].body)
 
-proc startWebServer*(port = 5000, appName = "") =
-  let settings = newSettings(Port(port), getConfigDir() / getAppFilename().extractFilename / "public", appName)
+proc startWebServer*(port = 5000, staticDir = "", appName = "") =
+  let settings =
+    if staticDir != "":
+      newSettings(Port(port), staticDir, appName)
+    else:
+      newSettings(Port(port), appName = appName)
   var jest = initJester(rt, settings=settings)
   jest.serve

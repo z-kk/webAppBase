@@ -23,11 +23,12 @@ requires "docopt >= 0.7.0"
 
 import std / [os, strutils]
 task r, "make link and run":
-  let staticDir = getConfigDir() / bin[0] / "public"
-  staticDir.parentDir.mkDir
-  if not staticDir.dirExists:
-    exec "ln -s " & getCurrentDir() / srcDir / "html " & staticDir
-  exec "nimble -d:Version=v$1 run" % [version]
+  exec "nimble -d:Version=v$1 build" % [version]
+  withDir binDir:
+    let staticDir = "public"
+    if not staticDir.dirExists:
+      exec "ln -s " & ".." / srcDir / "html " & staticDir
+    exec "." / bin[0]
 
 task inst, "install":
   let staticDir = getConfigDir() / bin[0] / "public"

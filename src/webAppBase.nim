@@ -54,5 +54,11 @@ proc createDb() =
 when isMainModule:
   randomize()
   createDb()
-  let cmdOpt = readCmdOpt()
-  startWebServer(cmdOpt.port, cmdOpt.appName)
+  let
+    cmdOpt = readCmdOpt()
+    staticDir =
+      when defined(release):
+        getConfigDir() / appName / "public"
+      else:
+        ""
+  startWebServer(cmdOpt.port, staticDir, cmdOpt.appName)
