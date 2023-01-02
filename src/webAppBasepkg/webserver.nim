@@ -14,9 +14,9 @@ type
   CookieTitle = enum
     ctSession = "session"
     ctNext = "next"
-  NameSuffix = enum
-    nsPermission = "_perm"
-    nsEnabled = "_enb"
+  ValueName = enum
+    vnPermission = "permission"
+    vnEnabled = "enabled"
 
 const
   AppTitle = "webApp"
@@ -45,12 +45,15 @@ proc getParamUsers(req: Request): seq[LoginUser] =
   let
     user = req.getLoginUser
     users = user.permission.getAuthUsers
-    data = req.formData
+    data = req.body.parseJson
   for u in users:
     var res = u
-    if data.hasKey(u.id & $nsPermission):
-      res.permission = Permission(data[u.id & $nsPermission].body.parseInt)
-    res.isEnable = data.hasKey(u.id & $nsEnabled)
+    if $u.id notin data:
+      continue
+    let dat = data[$u.id]
+    if $vnPermission in dat:
+      res.permission = Permission(dat[$vnPermission].getStr.parseInt)
+    res.isEnable = $vnEnabled in dat and dat[$vnEnabled].getBool
     if u.permission != res.permission or u.isEnable != res.isEnable:
       result.add res
 
@@ -161,13 +164,13 @@ proc userConfPage(req: Request): string =
     # ユーザーリストを作成
     for u in users:
       sel.options = @[]
-      sel.name = u.id & $nsPermission
+      sel.name = $vnPermission
       for pm in pmGuest .. user.permission:
         var opt = hoption(value: $pm.ord, content: $pm)
         if pm == u.permission:
           opt.selected = true
         sel.add opt
-      let chk = hcheckbox(name: u.id & $nsEnabled, checked: u.isEnable)
+      let chk = hcheckbox(name: $vnEnabled, checked: u.isEnable)
 
       tr.add htd(content: u.id)
       tr.add htd(content: sel.toHtml)
