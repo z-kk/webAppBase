@@ -1,7 +1,7 @@
 import
   std / [os, strutils, random],
   docopt,
-  webAppBasepkg / [webserver, dbtables]
+  webAppBasepkg / [webserver, dbtables, version]
 
 type
   CmdOpt = object
@@ -9,7 +9,6 @@ type
     appName: string
 
 const
-  Version {.strdefine.} = ""
   DefaultPort = 5000
 
 let

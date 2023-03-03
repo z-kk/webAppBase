@@ -23,7 +23,7 @@ requires "docopt >= 0.7.0"
 
 import std / [os, strutils]
 task r, "make link and run":
-  exec "nimble -d:Version=v$1 build" % [version]
+  exec "nimble build"
   withDir binDir:
     let staticDir = "public"
     if not staticDir.dirExists:
@@ -35,15 +35,25 @@ task inst, "install":
   staticDir.parentDir.mkDir
   staticDir.rmDir
   cpDir(srcDir / "html", staticDir)
-  let confFile = srcDir / "$1.nim.cfg" % [bin[0]]
-  writeFile(confFile, "-d:Version=\"v$1\"\n" % [version])
   exec "nimble install"
-  confFile.rmFile
 
 task release, "build release bin":
-  exec "nimble -d:release -d:Version=v$1 build" % [version]
+  binDir.rmDir
+  exec "nimble -d:release build"
   withDir binDir:
     let staticDir = "public"
     staticDir.rmDir
     cpDir(".." / srcDir / "html", staticDir)
     "README.txt".writeFile("copy public dir to ~/.config/$1/$2\n" % [bin[0], staticDir])
+
+
+# Before / After
+
+before build:
+  let versionFile = srcDir / bin[0] & "pkg" / "version.nim"
+  versionFile.parentDir.mkDir
+  versionFile.writeFile("const Version* = \"$1\"\n" % version)
+
+after build:
+  let versionFile = srcDir / bin[0] & "pkg" / "version.nim"
+  versionFile.writeFile("const Version* = \"\"\n")
