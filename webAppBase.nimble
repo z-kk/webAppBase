@@ -50,10 +50,18 @@ task release, "build release bin":
 # Before / After
 
 before build:
-  let versionFile = srcDir / bin[0] & "pkg" / "version.nim"
-  versionFile.parentDir.mkDir
-  versionFile.writeFile("const Version* = \"$1\"\n" % version)
+  let infoFile = srcDir / bin[0] & "pkg" / "nimbleInfo.nim"
+  infoFile.parentDir.mkDir
+  infoFile.writeFile("""
+    const
+      AppName* = "$#"
+      Version* = "$#"
+  """.dedent % [bin[0], version])
 
 after build:
-  let versionFile = srcDir / bin[0] & "pkg" / "version.nim"
-  versionFile.writeFile("const Version* = \"\"\n")
+  let infoFile = srcDir / bin[0] & "pkg" / "nimbleInfo.nim"
+  infoFile.writeFile("""
+    const
+      AppName* = ""
+      Version* = ""
+  """.dedent)

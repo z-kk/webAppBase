@@ -1,7 +1,7 @@
 import
   std / [os, strutils, random],
   docopt,
-  webAppBasepkg / [webserver, dbtables, version]
+  webAppBasepkg / [webserver, dbtables, nimbleInfo]
 
 type
   CmdOpt = object
@@ -10,9 +10,6 @@ type
 
 const
   DefaultPort = 5000
-
-let
-  appName = getAppFilename().extractFilename
 
 proc readCmdOpt(): CmdOpt =
   ## Read command line options.
@@ -28,19 +25,19 @@ proc readCmdOpt(): CmdOpt =
       -p --port <port>  Http server port [default: $2]
       -n --name         Use appName
       <appName>         Set appName
-  """ % [appName, $DefaultPort]
+  """ % [AppName, $DefaultPort]
   let args = doc.dedent.docopt(version = Version)
 
   result.port = try: parseInt($args["--port"]) except: DefaultPort
   if args["--name"]:
     result.appName = "/"
     if args["<appName>"].kind == vkNone:
-      result.appName.add appName
+      result.appName.add AppName
     else:
       result.appName.add $args["<appName>"]
 
 proc createConfDir() =
-  let dir = getConfigDir() / appName
+  let dir = getConfigDir() / AppName
   dir.createDir
 
 proc createDb() =
@@ -57,7 +54,7 @@ when isMainModule:
     cmdOpt = readCmdOpt()
     staticDir =
       when defined(release):
-        getConfigDir() / appName / "public"
+        getConfigDir() / AppName / "public"
       else:
         ""
   startWebServer(cmdOpt.port, staticDir, cmdOpt.appName)
