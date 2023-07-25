@@ -1,7 +1,11 @@
 import
-  std / [os, strutils, random],
+  std / [strutils, random],
   docopt,
   webAppBasepkg / [webserver, dbtables, nimbleInfo]
+
+when defined(release):
+  import
+    std / [os]
 
 type
   CmdOpt = object
@@ -36,20 +40,9 @@ proc readCmdOpt(): CmdOpt =
     else:
       result.appName.add $args["<appName>"]
 
-proc createConfDir() =
-  let dir = getConfigDir() / AppName
-  dir.createDir
-
-proc createDb() =
-  if not getDbFileName().fileExists:
-    createConfDir()
-    let db = openDb()
-    defer: db.close
-    db.createTables
-
 when isMainModule:
   randomize()
-  createDb()
+  createTables()
   let
     cmdOpt = readCmdOpt()
     staticDir =

@@ -1,14 +1,18 @@
 import
-  db_sqlite,
   std / os,
+  db_connector / db_sqlite,
   csvDir / [authUserInfo]
 export
   db_sqlite,
   authUserInfo
 proc getDbFileName*(): string =
-  getConfigDir() / getAppFilename().extractFilename / "webapp.db"
+  let dir = getDataDir() / getAppFilename().extractFilename
+  return dir / "webapp.db"
 proc openDb*(): DbConn =
   let db = open(getDbFileName(), "", "", "")
   return db
-proc createTables*(db: DbConn) =
+proc createTables*() =
+  getDbFileName().parentDir.createDir
+  let db = openDb()
   db.createAuthUserInfoTable
+  db.close
