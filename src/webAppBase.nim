@@ -1,11 +1,7 @@
 import
   std / [strutils, random],
   docopt,
-  webAppBasepkg / [webserver, dbtables, nimbleInfo]
-
-when defined(release):
-  import
-    std / [os]
+  webAppBasepkg / [webserver, dbtables, submodule, nimbleInfo]
 
 type
   CmdOpt = object
@@ -21,33 +17,25 @@ proc readCmdOpt(): CmdOpt =
     $1
 
     Usage:
-      $1 [-p <port>] [(-n [<appName>])]
+      $1 [-p <port>] [--appname <appName>] [--local]
 
     Options:
-      -h --help         Show this screen.
-      --version         Show version.
-      -p --port <port>  Http server port [default: $2]
-      -n --name         Use appName
-      <appName>         Set appName
+      -h --help           Show this screen.
+      --version           Show version.
+      -p --port <port>    Http server port [default: $2]
+      --appname <appName> Set appName.
+      --local             Use local public dir.
   """ % [AppName, $DefaultPort]
   let args = doc.dedent.docopt(version = Version)
 
   result.port = try: parseInt($args["--port"]) except: DefaultPort
-  if args["--name"]:
-    result.appName = "/"
-    if args["<appName>"].kind == vkNone:
-      result.appName.add AppName
-    else:
-      result.appName.add $args["<appName>"]
+  if args["--appname"]:
+    result.appName = "/" & $args["--appname"]
+
+  useLocalDir = args["--local"].to_bool
 
 when isMainModule:
+  let cmdOpt = readCmdOpt()
   randomize()
   createTables()
-  let
-    cmdOpt = readCmdOpt()
-    staticDir =
-      when defined(release):
-        getConfigDir() / AppName / "public"
-      else:
-        ""
-  startWebServer(cmdOpt.port, staticDir, cmdOpt.appName)
+  startWebServer(cmdOpt.port, cmdOpt.appName)

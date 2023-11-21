@@ -1,7 +1,12 @@
 import
-  std / [os, strutils, tables, json, htmlgen],
+  std / [strutils, tables, json, htmlgen],
   jester, htmlgenerator,
   auth, utils
+
+when defined(release):
+  import
+    std / [os],
+    submodule, nimbleInfo
 
 type
   Page = enum
@@ -320,10 +325,13 @@ router rt:
     let user = request.getLoginUser
     resp changeUserPass(user.id, request.formData["oldpasswd"].body, request.formData["passwd"].body)
 
-proc startWebServer*(port = 5000, staticDir = "", appName = "") =
+proc startWebServer*(port: int, appName = "") =
   let settings =
-    if staticDir != "":
-      newSettings(Port(port), staticDir, appName)
+    when defined(release):
+      if useLocalDir:
+        newSettings(Port(port), appName = appName)
+      else:
+        newSettings(Port(port), getConfigDir() / AppName / "public", appName)
     else:
       newSettings(Port(port), appName = appName)
   var jest = initJester(rt, settings=settings)

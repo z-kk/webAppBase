@@ -23,29 +23,25 @@ requires "docopt >= 0.7.1"
 # Tasks
 
 import std / [os, strutils]
-task r, "make link and run":
+task r, "build and run":
   exec "nimble build"
   withDir binDir:
     let staticDir = "public"
     if not staticDir.dirExists:
-      exec "ln -s " & ".." / srcDir / "html " & staticDir
-    exec "." / bin[0]
+      exec "ln -s $1 $2" % [".." / srcDir / "html ", staticDir]
+  exec "nimble ex"
 
-task inst, "install":
-  let staticDir = getConfigDir() / bin[0] / "public"
-  staticDir.parentDir.mkDir
-  staticDir.rmDir
-  cpDir(srcDir / "html", staticDir)
-  exec "nimble install"
+task ex, "run without build":
+  withDir binDir:
+    exec "." / bin[0]
 
 task release, "build release bin":
   binDir.rmDir
   exec "nimble -d:release build"
   withDir binDir:
     let staticDir = "public"
-    staticDir.rmDir
     cpDir(".." / srcDir / "html", staticDir)
-    "README.txt".writeFile("copy public dir to ~/.config/$1/$2\n" % [bin[0], staticDir])
+    "README.txt".writeFile("copy $2 dir to ~/.config/$1/$2\n" % [bin[0], staticDir])
 
 
 # Before / After
@@ -66,3 +62,9 @@ after build:
       AppName* = ""
       Version* = ""
   """.dedent)
+
+before install:
+  let staticDir = getConfigDir() / bin[0] / "public"
+  staticDir.parentDir.mkDir
+  staticDir.rmDir
+  cpDir(srcDir / "html", staticDir)
