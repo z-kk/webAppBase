@@ -2,16 +2,16 @@
 #proc basePage(param: BasePageParams): string =
 #  let lnk = param.lnk.join("\n        ")
 #  let script = param.script.join("\n        ")
-#  let appName = if param.appName == "": "/" else: param.appName
+#  let appName = param.appName
 #  result = ""
 <!DOCTYPE html>
 <html lang="ja">
     <head>
         <meta charset="utf-8">
         <title>${param.title}</title>
-        <link type="text/css" rel="stylesheet" href="${appName}milligram.min.css"/>
-        <link type="text/css" rel="stylesheet" href="${appName}milligram-opt.css"/>
-        <link type="text/css" rel="stylesheet" href="${appName}menu.css"/>
+        <link type="text/css" rel="stylesheet" href="${appName}/milligram.min.css"/>
+        <link type="text/css" rel="stylesheet" href="${appName}/milligram-opt.css"/>
+        <link type="text/css" rel="stylesheet" href="${appName}/menu.css"/>
         ${lnk}
     </head>
     <body>
@@ -30,7 +30,7 @@
             ${param.footer}
         </footer>
         <script>const appName = "${appName}";</script>
-        <script src="${appName}functions.js"></script>
+        <script src="${appName}/functions.js"></script>
         ${script}
     </body>
 </html>

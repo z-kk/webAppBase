@@ -6,7 +6,7 @@ self.window.addEventListener('load', function() {
             select("[name='passwd']").focus();
             return;
         }
-        fetch(appName + "newuser", {
+        fetch(appName + "/newuser", {
             method: "POST",
             body: fd,
         }).then(response => {

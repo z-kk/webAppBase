@@ -6,7 +6,7 @@ self.window.addEventListener('load', function() {
             select("[name='passwd']").focus();
             return;
         }
-        fetch(appName + "changepw", {
+        fetch(appName + "/changepw", {
             method: "POST",
             body: fd,
         }).then(response => {
@@ -17,7 +17,7 @@ self.window.addEventListener('load', function() {
         }).then(data => {
             if (data.result) {
                 // 更新に成功したら元のページへ
-                location.href = appName + "userconf"
+                location.href = appName + "/userconf"
             } else {
                 // 更新に失敗したら理由を表示
                 throw new Error(data.err);

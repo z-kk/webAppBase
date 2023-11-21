@@ -14,7 +14,7 @@ function updateUsersConf(e) {
         data[id] = rowdata;
     }
 
-    fetch(appName + "userconf", {
+    fetch(appName + "/userconf", {
         method: "POST",
         headers: {
             'Content-Type': "application/json",

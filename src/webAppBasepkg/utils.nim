@@ -17,7 +17,7 @@ proc uri*(request: Request, address = ""): string =
   uri(address, false)
 
 proc newParams*(req: Request): BasePageParams =
-  result.appName = req.appName & "/"
+  result.appName = req.appName
 
 proc newLink*(req: Request, path = ""): hlink =
   newLink(req.uri(path))

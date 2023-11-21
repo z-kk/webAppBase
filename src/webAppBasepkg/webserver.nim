@@ -62,7 +62,7 @@ proc getParamUsers(req: Request): seq[LoginUser] =
     if u.permission != res.permission or u.isEnable != res.isEnable:
       result.add res
 
-proc getMenuStr(activePage: Page): string =
+proc getMenuStr(req: Request, activePage: Page): string =
   ## Get side menu string.
   var
     menu: seq[string]
@@ -70,12 +70,12 @@ proc getMenuStr(activePage: Page): string =
   for page, info in Pages:
     if not info.isMenuItem:
       continue
-    item = ha(href: $page, content: info.title)
+    item = ha(href: req.uri($page), content: info.title)
     if page == activePage:
       item.class.add "is-active"
     menu.add item.toHtml
 
-  return menu.join(" $1\n$2" % [Br, ' '.repeat(BodyIndent)])
+  return menu.join("$1\n$2" % [Br, ' '.repeat(BodyIndent)])
 
 proc topPage(req: Request): string =
   let
@@ -245,7 +245,7 @@ proc makePage(req: Request, page: Page): string =
   var
     param = req.newParams
   param.title = AppTitle
-  param.sidemenu = getMenuStr(page)
+  param.sidemenu = getMenuStr(req, page)
 
   case page
   of pgTop:
