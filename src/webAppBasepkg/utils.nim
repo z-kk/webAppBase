@@ -5,10 +5,10 @@ type
   BasePageParams* = object
     title*: string
     lnk*: seq[string]
-    header*: string
-    sidemenu*: string
-    body*: string
-    footer*: string
+    header*: seq[string]
+    sidemenu*: seq[string]
+    body*: seq[string]
+    footer*: seq[string]
     script*: seq[string]
     appName*: string
 

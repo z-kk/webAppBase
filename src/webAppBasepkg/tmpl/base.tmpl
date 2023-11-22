@@ -1,7 +1,5 @@
 #? stdtmpl | standard
 #proc basePage(param: BasePageParams): string =
-#  let lnk = param.lnk.join("\n        ")
-#  let script = param.script.join("\n        ")
 #  let appName = param.appName
 #  result = ""
 <!DOCTYPE html>
@@ -12,25 +10,25 @@
         <link type="text/css" rel="stylesheet" href="${appName}/milligram.min.css"/>
         <link type="text/css" rel="stylesheet" href="${appName}/milligram-opt.css"/>
         <link type="text/css" rel="stylesheet" href="${appName}/menu.css"/>
-        ${lnk}
+        ${param.lnk.join("\n" & ' '.repeat(8))}
     </head>
     <body>
         <header>
-            ${param.header}
+            ${param.header.join("\n" & ' '.repeat(12))}
         </header>
         <div class="body">
             <main>
-                ${param.body}
+                ${param.body.join("\n" & ' '.repeat(16))}
             </main>
             <aside class="menu">
-                ${param.sidemenu}
+                ${param.sidemenu.join("<br>\n" & ' '.repeat(16))}
             </aside>
         </div>
         <footer>
-            ${param.footer}
+            ${param.footer.join("\n" & ' '.repeat(12))}
         </footer>
         <script>const appName = "${appName}";</script>
         <script src="${appName}/functions.js"></script>
-        ${script}
+        ${param.script.join("\n" & ' '.repeat(8))}
     </body>
 </html>

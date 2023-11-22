@@ -1,11 +1,26 @@
+function resetTable() {
+    fetch(appName + "/userconftable", {
+        method: "POST",
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error("response error");
+        }
+        return response.text();
+    }).then(txt => {
+        select("div.table").innerHTML = txt;
+    }).catch(err => {
+        alert(err);
+    });
+}
+
 function updateUsersConf(e) {
     const btn = e.target;
     btn.disabled = true;
 
-    let data = {};
+    const data = {};
     for (row of select("#userlistfrm tbody").children) {
-        let rowdata = {};
-        let id = row.children[0].innerText;
+        const rowdata = {};
+        const id = row.children[0].innerText;
         let name = "permission";
         rowdata[name] = row.querySelector("[name='" + name + "']").value;
         name = "enabled";
@@ -27,6 +42,7 @@ function updateUsersConf(e) {
         return response.json();
     }).then(data => {
         if (data.result) {
+            resetTable();
             alert("更新しました");
         } else {
             alert("更新に失敗しました\n[" + data.err + "]");
@@ -39,5 +55,9 @@ function updateUsersConf(e) {
 }
 
 self.window.addEventListener('load', function() {
-    select("#userconfbtn").addEventListener('click', updateUsersConf);
+    if (select("div.table").innerText == "") {
+        hide(select("#userlistfrm"));
+    } else {
+        select("#userconfbtn").addEventListener('click', updateUsersConf);
+    }
 });
