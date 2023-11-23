@@ -1,7 +1,7 @@
 import
   std / [strutils, random],
   docopt,
-  webAppBasepkg / [webserver, dbtables, submodule, nimbleInfo]
+  webAppBasepkg / [webserver, auth, dbtables, submodule, nimbleInfo]
 
 type
   CmdOpt = object
@@ -38,4 +38,7 @@ when isMainModule:
   let cmdOpt = readCmdOpt()
   randomize()
   createTables()
+  if getAuthUsers(pmOwner).len == 0:
+    if not createOwnerUser():
+      quit(1)
   startWebServer(cmdOpt.port, cmdOpt.appName)

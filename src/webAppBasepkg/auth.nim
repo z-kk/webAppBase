@@ -1,5 +1,5 @@
 import
-  std / [strutils, tables, times, json, random],
+  std / [strutils, tables, times, json, rdstdin, terminal, random],
   libsha / sha256,
   dbtables
 
@@ -211,3 +211,24 @@ proc updateAuthUsers*(users: seq[LoginUser]): JsonNode =
     result.delete("err")
   except:
     return
+
+proc createOwnerUser*(): bool =
+  ## Create owner user.
+  echo "管理者ユーザーを作成"
+  let
+    userName = readLineFromStdin("ユーザー名: ")
+    userPass = readPasswordFromStdin()
+  var
+    res = addNewUser(userName, userPass)
+  if not res["result"].getBool:
+    echo res["err"].getStr
+    return false
+
+  var
+    user = LoginUser(id: userName, permission: pmOwner, isEnable: true)
+  res = updateAuthUsers(@[user])
+  if not res["result"].getBool:
+    echo res["err"].getStr
+    return false
+
+  return true
