@@ -1,0 +1,23 @@
+@charset "utf-8";
+/* CSS Document */
+
+body {
+    max-width: unset;
+    overflow-x: unset;
+}
+
+fieldset {
+    padding-block: .5rem;
+}
+
+legend {
+    padding: 0 .5rem;
+}
+
+table {
+    textarea,
+    select,
+    input {
+        margin-bottom: 0;
+    }
+}

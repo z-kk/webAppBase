@@ -26,12 +26,10 @@ aside.menu {
 }
 
 .menu a.is-active {
-    background-color: #9b4dca;
-    color: white;
+    background-color: var(--nc-ac-1);
 }
 
 .menu a:hover,
 .menu a:focus {
-    border-color: #9b4dca;
-    color: #606c76;
+    border-color: var(--nc-ac-1);
 }

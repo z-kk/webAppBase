@@ -2,8 +2,9 @@
 #proc changepwPageBody(userid, back: string): string =
 #  result = ""
 <form id="changepwfrm">
-    <label class="label-inline">ユーザーID:</label>
-    <label class="label-inline">${userid}</label><br>
+    <div>
+        <span>ユーザーID: ${userid}</span>
+    </div>
     <label>旧パスワード<input type="password" name="oldpasswd" placeholder="old password"/></label>
     <label>新パスワード<input type="password" name="passwd" placeholder="new password"/></label>
     <label>再入力<input type="password" name="pcheck" placeholder="再入力"/></label>

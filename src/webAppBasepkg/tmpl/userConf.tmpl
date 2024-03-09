@@ -2,8 +2,9 @@
 #proc userConfPageBody(userid, changepw, table: string): string =
 #  result = ""
 <div>
-    <label class="label-inline">ユーザーID:</label>
-    <label class="label-inline">${userid}</label><br>
+    <div>
+        <span>ユーザーID: ${userid}</span>
+    </div>
     <a href="${changepw}">パスワードを変更</a>
 </div>
 <form id="userlistfrm">

@@ -174,11 +174,11 @@ proc samplePage(req: Request): seq[string] =
     for line in d.toHtml.splitLines:
       result.add line
   else:
-    result.add hlabel(class: @["label-inline", "title"], content: "ID: ").toHtml
-    result.add hlabel(class: @["label-inline"], content: user.id).toHtml
+    result.add hlabel(content: "ID: ").toHtml
+    result.add hlabel(content: user.id).toHtml
     result.add Br
-    result.add hlabel(class: @["label-inline", "title"], content: "Enable: ").toHtml
-    result.add hlabel(class: @["label-inline"], content: $user.isEnable).toHtml
+    result.add hlabel(content: "Enable: ").toHtml
+    result.add hlabel(content: $user.isEnable).toHtml
     result.add Br
 
   for line in samplePageBody().splitLines:
@@ -208,7 +208,6 @@ proc makePage(req: Request, page: Page): string =
     param.script.add req.newScript("/newuser.js").toHtml
   of pgUserConf:
     param.header = @[h1("ユーザー設定")]
-    param.lnk.add req.newLink("/table.css").toHtml
     param.body = req.userConfPage
     param.script.add req.newScript("/userconf.js").toHtml
   of pgChangePw:
@@ -217,7 +216,6 @@ proc makePage(req: Request, page: Page): string =
     param.script.add req.newScript("/changepw.js").toHtml
   of pgSample:
     param.header = @[h1("サンプルページ")]
-    param.lnk.add req.newLink("/sample.css").toHtml
     param.body = req.samplePage
 
   return param.basePage
