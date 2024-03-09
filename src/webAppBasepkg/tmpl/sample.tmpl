@@ -1,6 +1,14 @@
 #? stdtmpl | standard
-#proc samplePageBody(): string =
+#proc samplePageBody(user: LoginUser): string =
 #  result = ""
+<div>
+    #if user.id == "":
+    <span>ユーザー情報なし</span>
+    #else:
+    <span>ID: ${user.id}</span><br>
+    <span>Enable: ${user.isEnable}</span>
+    #end if
+</div>
 <form id="samplefrm">
     <label>title<input name="input1"/></label>
     <label>other title<input name="input2"/></label>

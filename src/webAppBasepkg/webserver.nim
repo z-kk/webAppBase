@@ -168,21 +168,7 @@ proc samplePage(req: Request): seq[string] =
   let
     user = req.getLoginUser
 
-  if user.id == "":
-    var d: hdiv
-    d.add hlabel(content: "ユーザー情報なし").toHtml
-    for line in d.toHtml.splitLines:
-      result.add line
-  else:
-    result.add hlabel(content: "ID: ").toHtml
-    result.add hlabel(content: user.id).toHtml
-    result.add Br
-    result.add hlabel(content: "Enable: ").toHtml
-    result.add hlabel(content: $user.isEnable).toHtml
-    result.add Br
-
-  for line in samplePageBody().splitLines:
-    result.add line
+  return samplePageBody(user).splitLines
 
 proc makePage(req: Request, page: Page): string =
   var
