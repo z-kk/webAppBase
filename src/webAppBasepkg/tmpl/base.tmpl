@@ -15,20 +15,26 @@
         ${param.lnk.join("\n" & ' '.repeat(8))}
     </head>
     <body>
+        #if param.header.len > 0:
         <header>
             ${param.header.join("\n" & ' '.repeat(12))}
         </header>
+        #end if
         <div class="body">
             <main>
                 ${param.body.join("\n" & ' '.repeat(16))}
             </main>
+            #if param.sidemenu.len > 0:
             <aside class="menu">
                 ${param.sidemenu.join("<br>\n" & ' '.repeat(16))}
             </aside>
+            #end if
         </div>
+        #if param.footer.len > 0:
         <footer>
             ${param.footer.join("\n" & ' '.repeat(12))}
         </footer>
+        #end if
         <script>const appName = "${appName}";</script>
         <script src="${appName}/functions.js"></script>
         ${param.script.join("\n" & ' '.repeat(8))}
