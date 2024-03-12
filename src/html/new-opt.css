@@ -1,6 +1,26 @@
 @charset "utf-8";
 /* CSS Document */
 
+:root {
+    /* Light theme */
+    --color-success: #16B43B;
+    --color-error: #F13245;
+    --color-warning: #F8C11A;
+
+    /* Dark theme */
+    --color-d-success: #33E65D;
+    --color-d-error: #F74254;
+    --color-d-warning: #F1C339;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-success: var(--color-d-success);
+        --color-error: var(--color-d-error);
+        --color-warning: var(--color-d-warning);
+    }
+}
+
 body {
     max-width: unset;
     overflow-x: unset;
