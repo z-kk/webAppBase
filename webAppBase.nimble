@@ -28,7 +28,7 @@ task r, "build and run":
   withDir binDir:
     let staticDir = "public"
     if not staticDir.dirExists:
-      exec "ln -s $1 $2" % [".." / srcDir / "html ", staticDir]
+      exec "ln -s $1 $2" % [".." / srcDir / "static ", staticDir]
   exec "nimble ex"
 
 task ex, "run without build":
@@ -40,7 +40,7 @@ task release, "build release bin":
   exec "nimble -d:release build"
   withDir binDir:
     let staticDir = "public"
-    cpDir(".." / srcDir / "html", staticDir)
+    cpDir(".." / srcDir / "static", staticDir)
     "README.txt".writeFile("copy $2 dir to ~/.config/$1/$2\n" % [bin[0], staticDir])
 
 
@@ -67,4 +67,4 @@ before install:
   let staticDir = getConfigDir() / bin[0] / "public"
   staticDir.parentDir.mkDir
   staticDir.rmDir
-  cpDir(srcDir / "html", staticDir)
+  cpDir(srcDir / "static", staticDir)
