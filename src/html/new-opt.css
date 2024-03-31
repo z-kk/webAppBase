@@ -26,6 +26,20 @@ body {
     overflow-x: unset;
 }
 
+input[type="number"]:not(:focus):not(:hover),
+input[type="number"]:disabled,
+input[type="number"]:read-only {
+    appearance: textfield;
+}
+
+input[type="tel"] {
+    width: 140px;
+}
+
+input[type="file"] {
+    width: 300px;
+}
+
 fieldset {
     padding-block: .5rem;
 }

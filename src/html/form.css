@@ -18,3 +18,11 @@ form {
         margin-right: 4px;
     }
 }
+
+.nowrap {
+    textarea,
+    select,
+    input {
+        display: unset;
+    }
+}
