@@ -1,4 +1,5 @@
 import
+  std / json,
   jester, htmlgenerator
 
 type
@@ -24,3 +25,16 @@ proc newLink*(req: Request, path = ""): hlink =
 
 proc newScript*(req: Request, path = ""): hscript =
   newScript(req.uri(path))
+
+proc newResult*(): JsonNode =
+  ## Create error node
+  %*{"result": false, "err": "Unknown error!"}
+
+proc successResult*(): JsonNode =
+  ## Create success node
+  %*{"result": true}
+
+proc success*(node: var JsonNode) =
+  node["result"] = %true
+  if node.hasKey("err"):
+    node.delete("err")

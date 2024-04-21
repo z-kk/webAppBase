@@ -1,7 +1,7 @@
 import
   std / [strutils, tables, times, json, rdstdin, terminal, random],
   libsha / sha256,
-  dbtables
+  utils, dbtables
 
 type
   Permission* = enum
@@ -66,7 +66,7 @@ proc getSessionUser*(id: int): LoginUser =
 
 proc addNewUser*(id, pass: string): JsonNode =
   ## Insert new user into auth user table.
-  result = %*{"result": false, "err": "unknown error!"}
+  result = newResult()
 
   let db = openDb()
   defer: db.close
@@ -93,12 +93,11 @@ proc addNewUser*(id, pass: string): JsonNode =
   u = db.selectAuthUserInfoTable("login_id = ?", @[], id)[0]
 
   result["id"] = %u.id.makeSession
-  result["result"] = %true
-  result.delete("err")
+  result.success
 
 proc changeUserPass*(id, old, pass: string): JsonNode =
   ## Change users password.
-  result = %*{"result": false, "err": "unknown error!"}
+  result = newResult()
 
   let db = openDb()
   defer: db.close
@@ -119,13 +118,12 @@ proc changeUserPass*(id, old, pass: string): JsonNode =
     user.updated_at = now()
     db.updateAuthUserInfoTable(user)
 
-    result["result"] = %true
-    result.delete("err")
+    result.success
     break
 
 proc login*(id, pass: string): JsonNode =
   ## Check login user info.
-  result = %*{"result": false, "err": "unknown error!"}
+  result = newResult()
 
   let db = openDb()
   defer:db.close
@@ -157,8 +155,7 @@ proc login*(id, pass: string): JsonNode =
       resid = makeSession(row.id)
 
     result["id"] = %resid
-    result["result"] = %true
-    result.delete("err")
+    result.success
     break
 
 proc getAuthUsers*(pm: Permission): seq[LoginUser] =
@@ -179,7 +176,7 @@ proc getAuthUsers*(pm: Permission): seq[LoginUser] =
 
 proc updateAuthUsers*(users: seq[LoginUser]): JsonNode =
   ## Update auth users info.
-  result = %*{"result": false, "err": "unknown error!"}
+  result = newResult()
 
   let db = openDb()
   defer: db.close
@@ -207,8 +204,7 @@ proc updateAuthUsers*(users: seq[LoginUser]): JsonNode =
 
   try:
     db.updateAuthUserInfoTable(targets)
-    result["result"] = %true
-    result.delete("err")
+    result.success
   except:
     return
 
