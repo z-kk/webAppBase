@@ -1,0 +1,57 @@
+@charset "utf-8";
+/* CSS Document */
+
+:root {
+    /* Light theme */
+    --color-success: #16B43B;
+    --color-error: #F13245;
+    --color-warning: #F8C11A;
+
+    /* Dark theme */
+    --color-d-success: #33E65D;
+    --color-d-error: #F74254;
+    --color-d-warning: #F1C339;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-success: var(--color-d-success);
+        --color-error: var(--color-d-error);
+        --color-warning: var(--color-d-warning);
+    }
+}
+
+body {
+    max-width: unset;
+    overflow-x: unset;
+}
+
+input[type="number"]:not(:focus):not(:hover),
+input[type="number"]:disabled,
+input[type="number"]:read-only {
+    appearance: textfield;
+}
+
+input[type="tel"] {
+    width: 140px;
+}
+
+input[type="file"] {
+    width: 300px;
+}
+
+fieldset {
+    padding-block: .5rem;
+}
+
+legend {
+    padding: 0 .5rem;
+}
+
+table {
+    textarea,
+    select,
+    input {
+        margin-bottom: 0;
+    }
+}
