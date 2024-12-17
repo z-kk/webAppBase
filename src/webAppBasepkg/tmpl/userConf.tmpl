@@ -1,0 +1,15 @@
+#? stdtmpl | standard
+#proc userConfPageBody(userid, changepw, table: string): string =
+#  result = ""
+<div>
+    <div>
+        <span>ユーザーID: ${userid}</span>
+    </div>
+    <a href="${changepw}">パスワードを変更</a>
+</div>
+<form id="userlistfrm">
+    <div class="table">
+        ${table.splitLines.join("\n" & ' '.repeat(8))}
+    </div>
+    <button type="button" id="userconfbtn">OK</button>
+</form>

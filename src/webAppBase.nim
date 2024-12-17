@@ -1,7 +1,7 @@
 import
-  std / [os, strutils, random],
+  std / [strutils, random],
   docopt,
-  webAppBasepkg / [webserver, dbtables]
+  webAppBasepkg / [webserver, auth, dbtables, submodule, nimbleInfo]
 
 type
   CmdOpt = object
@@ -9,11 +9,7 @@ type
     appName: string
 
 const
-  Version {.strdefine.} = ""
   DefaultPort = 5000
-
-let
-  appName = getAppFilename().extractFilename
 
 proc readCmdOpt(): CmdOpt =
   ## Read command line options.
@@ -21,38 +17,28 @@ proc readCmdOpt(): CmdOpt =
     $1
 
     Usage:
-      $1 [-p <port>] [(-n [<appName>])]
+      $1 [-p <port>] [--appname <appName>] [--local]
 
     Options:
-      -h --help         Show this screen.
-      --version         Show version.
-      -p --port <port>  Http server port [default: $2]
-      -n --name         Use appName
-      <appName>         Set appName
-  """ % [appName, $DefaultPort]
+      -h --help           Show this screen.
+      --version           Show version.
+      -p --port <port>    Http server port [default: $2]
+      --appname <appName> Set appName.
+      --local             Use local public dir.
+  """ % [AppName, $DefaultPort]
   let args = doc.dedent.docopt(version = Version)
 
   result.port = try: parseInt($args["--port"]) except: DefaultPort
-  if args["--name"]:
-    result.appName = "/"
-    if args["<appName>"].kind == vkNone:
-      result.appName.add appName
-    else:
-      result.appName.add $args["<appName>"]
+  if args["--appname"]:
+    result.appName = "/" & $args["--appname"]
 
-proc createConfDir() =
-  let dir = getConfigDir() / appName
-  dir.createDir
-
-proc createDb() =
-  if not getDbFileName().fileExists:
-    createConfDir()
-    let db = openDb()
-    defer: db.close
-    db.createTables
+  useLocalDir = args["--local"].to_bool
 
 when isMainModule:
-  randomize()
-  createDb()
   let cmdOpt = readCmdOpt()
+  randomize()
+  createTables()
+  if getAuthUsers(pmOwner).len == 0:
+    if not createOwnerUser():
+      quit(1)
   startWebServer(cmdOpt.port, cmdOpt.appName)

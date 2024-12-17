@@ -1,5 +1,5 @@
 import
-  std / [strutils, tables, times, json, random],
+  std / [strutils, tables, times, json, rdstdin, terminal, random],
   libsha / sha256,
   dbtables
 
@@ -30,7 +30,8 @@ proc maxDate(): DateTime =
 
 proc makeSession(id: int): int =
   ## Make new session with user id.
-  result = rand(0xffff)
+  while result == 0 or result in sessions:
+    result = rand(0xffff)
 
   var s: SessionInfo
   s.userId = id
@@ -55,7 +56,7 @@ proc getSessionUser*(id: int): LoginUser =
   let db = openDb()
   defer: db.close
 
-  let rows = db.selectAuthUserInfoTable("id = ?", @[], $session.userId)
+  let rows = db.selectAuthUserInfoTable("id = ?", @[], session.userId)
   for row in rows:
     result.id = row.login_id
     result.permission = Permission(row.permission)
@@ -210,3 +211,24 @@ proc updateAuthUsers*(users: seq[LoginUser]): JsonNode =
     result.delete("err")
   except:
     return
+
+proc createOwnerUser*(): bool =
+  ## Create owner user.
+  echo "管理者ユーザーを作成"
+  let
+    userName = readLineFromStdin("ユーザー名: ")
+    userPass = readPasswordFromStdin()
+  var
+    res = addNewUser(userName, userPass)
+  if not res["result"].getBool:
+    echo res["err"].getStr
+    return false
+
+  var
+    user = LoginUser(id: userName, permission: pmOwner, isEnable: true)
+  res = updateAuthUsers(@[user])
+  if not res["result"].getBool:
+    echo res["err"].getStr
+    return false
+
+  return true

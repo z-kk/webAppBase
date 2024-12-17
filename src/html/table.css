@@ -2,33 +2,36 @@
 /* CSS Document */
 
 .table {
-    width: fit-content;
     max-height: 70vh;
     max-width: calc(100% - 24px);
+    margin-bottom: .5rem;
     padding-right: 18px;
     overflow: auto;
 }
 
 .table table {
+    margin-bottom: 0;
+    border-collapse: unset;
     border-spacing: 0;
-    border-left: 1px solid lightgray;
     white-space: nowrap;
 }
 
-.table th {
+.table thead {
     position: sticky;
     top: 0;
-    background: #F6F6F6;
     z-index: 1;
 }
 
-.table th, .table td {
-    padding: 0 4px;
-    border: 1px solid lightgray;
-    border-left: none;
+.table thead:not(:first-child) th,
+.table thead:not(:first-child) td,
+.table tbody:not(:first-child) th,
+.table tbody:not(:first-child) td,
+.table tr:not(:first-child) th,
+.table tr:not(:first-child) td {
+    border-top: none;
 }
 
-.table td {
-    border-top: none;
-    background: white;
+.table th:not(:first-child),
+.table td:not(:first-child) {
+    border-left: none;
 }

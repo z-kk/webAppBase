@@ -1,4 +1,5 @@
 {
   "dbType": 1,
-  "dbFileName": "webapp.db"
+  "dbFileName": "webapp.db",
+  "dbDirName": "XDG_DATA_HOME"
 }

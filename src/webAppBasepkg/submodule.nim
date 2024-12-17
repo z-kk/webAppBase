@@ -1,0 +1,2 @@
+var
+  useLocalDir*: bool

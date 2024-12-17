@@ -1,0 +1,10 @@
+#? stdtmpl | standard
+#proc newUserPageBody(next: string): string =
+#  result = ""
+<form id="newuserfrm">
+    ${next}
+    <label>ユーザー名<input name="userid" placeholder="ユーザー名"/></label>
+    <label>パスワード<input type="password" name="passwd" placeholder="password"/></label>
+    <label>再入力<input type="password" name="pcheck" placeholder="再入力"/></label>
+    <button type="button" id="newuserbtn">登録</button>
+</form>
