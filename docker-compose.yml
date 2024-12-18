@@ -1,0 +1,12 @@
+services:
+  nimsv:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: prod
+    ports:
+      - 5000:5000
+    volumes:
+      - ./data:/work/data
+    working_dir: /work
+    command: ./webAppBase --local

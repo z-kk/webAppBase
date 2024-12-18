@@ -2,6 +2,7 @@ nimcache/
 nimblecache/
 htmldocs/
 
+data/
 bin/
-
-*.swp
+tests/*
+!tests/*.nim*
