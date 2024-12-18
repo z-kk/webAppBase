@@ -8,6 +8,7 @@ when defined(release):
 export
   db_sqlite,
   authUserInfo
+
 proc getDbFileName*(): string =
   let dir =
     when defined(release):
@@ -18,11 +19,12 @@ proc getDbFileName*(): string =
     else:
       "."
   return dir / "webapp.db"
-proc openDb*(): DbConn =
-  let db = open(getDbFileName(), "", "", "")
-  return db
-proc createTables*() =
-  getDbFileName().parentDir.createDir
-  let db = openDb()
+
+proc openDb*(fileName = getDbFileName()): DbConn =
+  return open(fileName, "", "", "")
+
+proc createTables*(fileName = getDbFileName()) =
+  fileName.parentDir.createDir
+  let db = fileName.openDb
   db.createAuthUserInfoTable
   db.close

@@ -1,7 +1,7 @@
 import
-  std / [os, strutils, strformat, parsecsv],
-  std / times,
+  std / [os, strutils, sequtils, times, parsecsv],
   db_connector / db_sqlite
+
 type
   AuthUserInfoCol* {.pure.} = enum
     id, login_id, permission, passwd, created_at, updated_at, deleted_at
@@ -14,6 +14,7 @@ type
     created_at*: DateTime
     updated_at*: DateTime
     deleted_at*: DateTime
+
 proc setDataAuthUserInfoTable*(data: var AuthUserInfoTable, colName, value: string) =
   case colName
   of "id":
@@ -44,56 +45,60 @@ proc setDataAuthUserInfoTable*(data: var AuthUserInfoTable, colName, value: stri
     try:
       data.deleted_at = value.parse("yyyy-MM-dd HH:mm:ss")
     except: discard
+
 proc createAuthUserInfoTable*(db: DbConn) =
-  let sql = """create table if not exists authUserInfo(
-    id INTEGER not null primary key,
-    login_id TEXT not null,
-    permission INTEGER default 1 not null,
-    passwd TEXT not null,
-    created_at DATETIME default '9999-12-31' not null,
-    updated_at DATETIME default '9999-12-31' not null,
-    deleted_at DATETIME default '9999-12-31' not null
-  )""".sql
+  let sql = """
+    create table if not exists authUserInfo(
+      id INTEGER not null primary key,
+      login_id TEXT not null,
+      permission INTEGER default 1 not null,
+      passwd TEXT not null,
+      created_at DATETIME default '9999-12-31' not null,
+      updated_at DATETIME default '9999-12-31' not null,
+      deleted_at DATETIME default '9999-12-31' not null
+    )
+  """.sql
   db.exec(sql)
+
 proc tryInsertAuthUserInfoTable*(db: DbConn, rowData: AuthUserInfoTable): int64 =
   var vals: seq[string]
   var sql = "insert into authUserInfo("
   if rowData.id > 0:
-    sql &= "id,"
+    sql.add "id,"
+    vals.add $rowData.id
+  sql.add "login_id,"
   vals.add rowData.login_id
-  sql &= "login_id,"
+  sql.add "permission,"
   vals.add $rowData.permission
-  sql &= "permission,"
+  sql.add "passwd,"
   vals.add rowData.passwd
-  sql &= "passwd,"
   if rowData.created_at != DateTime():
+    sql.add "created_at,"
     vals.add rowData.created_at.format("yyyy-MM-dd HH:mm:ss")
-    sql &= "created_at,"
   if rowData.updated_at != DateTime():
+    sql.add "updated_at,"
     vals.add rowData.updated_at.format("yyyy-MM-dd HH:mm:ss")
-    sql &= "updated_at,"
   if rowData.deleted_at != DateTime():
+    sql.add "deleted_at,"
     vals.add rowData.deleted_at.format("yyyy-MM-dd HH:mm:ss")
-    sql &= "deleted_at,"
   sql[^1] = ')'
-  sql &= " values ("
-  if rowData.id > 0:
-    sql &= &"{rowData.id},"
-  sql &= "?,".repeat(vals.len)
-  sql[^1] = ')'
+  sql.add " values ("
+  sql.add sequtils.repeat("?", vals.len).join(",")
+  sql.add ')'
   return db.tryInsertID(sql.sql, vals)
 proc insertAuthUserInfoTable*(db: DbConn, rowData: AuthUserInfoTable) =
   let res = tryInsertAuthUserInfoTable(db, rowData)
   if res < 0: db.dbError
-proc insertAuthUserInfoTable*(db: DbConn, rowDataSeq: seq[AuthUserInfoTable]) =
-  for rowData in rowDataSeq:
+proc insertAuthUserInfoTable*(db: DbConn, rowDataList: seq[AuthUserInfoTable]) =
+  for rowData in rowDataList:
     db.insertAuthUserInfoTable(rowData)
+
 proc selectAuthUserInfoTable*(db: DbConn, whereStr = "", orderBy: seq[string], whereVals: varargs[string, `$`]): seq[AuthUserInfoTable] =
   var sql = "select * from authUserInfo"
   if whereStr != "":
-    sql &= " where " & whereStr
+    sql.add " where " & whereStr
   if orderBy.len > 0:
-    sql &= " order by " & orderBy.join(",")
+    sql.add " order by " & orderBy.join(",")
   let rows = db.getAllRows(sql.sql, whereVals)
   for row in rows:
     var res: AuthUserInfoTable
@@ -105,61 +110,65 @@ proc selectAuthUserInfoTable*(db: DbConn, whereStr = "", orderBy: seq[string], w
     res.setDataAuthUserInfoTable("created_at", row[AuthUserInfoCol.created_at.ord])
     res.setDataAuthUserInfoTable("updated_at", row[AuthUserInfoCol.updated_at.ord])
     res.setDataAuthUserInfoTable("deleted_at", row[AuthUserInfoCol.deleted_at.ord])
-    result.add(res)
+    result.add res
 proc selectAuthUserInfoTable*(db: DbConn, whereStr = "", whereVals: varargs[string, `$`]): seq[AuthUserInfoTable] =
   selectAuthUserInfoTable(db, whereStr, @[], whereVals)
-proc updateAuthUserInfoTable*(db: DbConn, rowData: AuthUserInfoTable) =
-  if rowData.primKey < 1: return
-  var vals: seq[string]
-  var sql = "update authUserInfo set "
-  vals.add rowData.login_id
-  sql &= "login_id = ?,"
-  vals.add $rowData.permission
-  sql &= "permission = ?,"
-  vals.add rowData.passwd
-  sql &= "passwd = ?,"
-  if rowData.created_at != DateTime():
-    vals.add rowData.created_at.format("yyyy-MM-dd HH:mm:ss")
-    sql &= "created_at = ?,"
-  if rowData.updated_at != DateTime():
-    vals.add rowData.updated_at.format("yyyy-MM-dd HH:mm:ss")
-    sql &= "updated_at = ?,"
-  if rowData.deleted_at != DateTime():
-    vals.add rowData.deleted_at.format("yyyy-MM-dd HH:mm:ss")
-    sql &= "deleted_at = ?,"
-  sql[^1] = ' '
 
-  sql &= &"where id = {rowData.primKey}"
+proc updateAuthUserInfoTable*(db: DbConn, rowData: AuthUserInfoTable) =
+  if rowData.primKey < 1:
+    return
+  var
+    vals: seq[string]
+    sql = "update authUserInfo set "
+  sql.add "login_id = ?,"
+  vals.add rowData.login_id
+  sql.add "permission = ?,"
+  vals.add $rowData.permission
+  sql.add "passwd = ?,"
+  vals.add rowData.passwd
+  if rowData.created_at != DateTime():
+    sql.add "created_at = ?,"
+    vals.add rowData.created_at.format("yyyy-MM-dd HH:mm:ss")
+  if rowData.updated_at != DateTime():
+    sql.add "updated_at = ?,"
+    vals.add rowData.updated_at.format("yyyy-MM-dd HH:mm:ss")
+  if rowData.deleted_at != DateTime():
+    sql.add "deleted_at = ?,"
+    vals.add rowData.deleted_at.format("yyyy-MM-dd HH:mm:ss")
+  sql[^1] = ' '
+  sql.add "where id = " & $rowData.primKey
   db.exec(sql.sql, vals)
-proc updateAuthUserInfoTable*(db: DbConn, rowDataSeq: seq[AuthUserInfoTable]) =
-  for rowData in rowDataSeq:
+proc updateAuthUserInfoTable*(db: DbConn, rowDataList: seq[AuthUserInfoTable]) =
+  for rowData in rowDataList:
     db.updateAuthUserInfoTable(rowData)
+
 proc dumpAuthUserInfoTable*(db: DbConn, dirName = ".") =
   dirName.createDir
   let
     fileName = dirName / "authUserInfo.csv"
     f = fileName.open(fmWrite)
-  f.writeLine("id,login_id,permission,passwd,created_at,updated_at,deleted_at")
+  f.writeLine "id,login_id,permission,passwd,created_at,updated_at,deleted_at"
   for row in db.selectAuthUserInfoTable:
-    f.write('"', $row.id, '"', ',')
-    f.write('"', $row.login_id, '"', ',')
-    f.write('"', $row.permission, '"', ',')
-    f.write('"', $row.passwd, '"', ',')
+    f.write "\"$#\"," % [$row.id]
+    f.write "\"$#\"," % [$row.login_id]
+    f.write "\"$#\"," % [$row.permission]
+    f.write "\"$#\"," % [$row.passwd]
     if row.created_at == DateTime():
-      f.write(',')
+      f.write ","
     else:
-      f.write(row.created_at.format("yyyy-MM-dd HH:mm:ss"), ',')
+      f.write row.created_at.format("yyyy-MM-dd HH:mm:ss"), ","
     if row.updated_at == DateTime():
-      f.write(',')
+      f.write ","
     else:
-      f.write(row.updated_at.format("yyyy-MM-dd HH:mm:ss"), ',')
+      f.write row.updated_at.format("yyyy-MM-dd HH:mm:ss"), ","
     if row.deleted_at == DateTime():
-      f.write(',')
+      f.write ","
     else:
-      f.write(row.deleted_at.format("yyyy-MM-dd HH:mm:ss"), ',')
+      f.write row.deleted_at.format("yyyy-MM-dd HH:mm:ss"), ","
     f.setFilePos(f.getFilePos - 1)
-    f.writeLine("")
+    f.writeLine ""
   f.close
+
 proc insertCsvAuthUserInfoTable*(db: DbConn, fileName: string) =
   var parser: CsvParser
   defer: parser.close
@@ -175,6 +184,7 @@ proc insertCsvAuthUserInfoTable*(db: DbConn, fileName: string) =
     data.setDataAuthUserInfoTable("updated_at", parser.rowEntry("updated_at"))
     data.setDataAuthUserInfoTable("deleted_at", parser.rowEntry("deleted_at"))
     db.insertAuthUserInfoTable(data)
+
 proc restoreAuthUserInfoTable*(db: DbConn, dirName = ".") =
   let fileName = dirName / "authUserInfo.csv"
   db.exec("delete from authUserInfo".sql)
